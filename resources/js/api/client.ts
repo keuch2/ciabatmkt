@@ -3,6 +3,8 @@
  * Antes de cualquier petición que no sea GET se asegura de tener la cookie XSRF-TOKEN.
  */
 
+import { withBase } from '@/app/basePath';
+
 export type ValidationErrors = Record<string, string[]>;
 
 export class ApiError extends Error {
@@ -35,7 +37,7 @@ let csrfRequest: Promise<void> | null = null;
 
 async function ensureCsrfCookie(force = false): Promise<void> {
     if (!force && readCookie('XSRF-TOKEN')) return;
-    csrfRequest ??= fetch('/sanctum/csrf-cookie', { credentials: 'include' })
+    csrfRequest ??= fetch(withBase('/sanctum/csrf-cookie'), { credentials: 'include' })
         .then(() => undefined)
         .finally(() => {
             csrfRequest = null;
@@ -54,7 +56,7 @@ async function request<T>(method: Method, url: string, body: unknown, retryOnCsr
     const xsrf = readCookie('XSRF-TOKEN');
     if (xsrf) headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrf);
 
-    const response = await fetch(url, {
+    const response = await fetch(withBase(url), {
         method,
         headers,
         credentials: 'include',

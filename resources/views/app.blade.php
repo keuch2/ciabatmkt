@@ -8,6 +8,6 @@
     @vite(['resources/css/app.css', 'resources/js/main.tsx'])
 </head>
 <body class="bg-slate-100 text-slate-900 antialiased">
-    <div id="root"></div>
+    <div id="root" data-base="{{ rtrim(parse_url(config('app.url'), PHP_URL_PATH) ?: '', '/') }}"></div>
 </body>
 </html>

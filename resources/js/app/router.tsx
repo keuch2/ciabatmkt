@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { BASE_PATH } from './basePath';
 import { RedirectIfAuthenticated, RequireAuth, RequireSuperAdmin } from '@/auth/RequireAuth';
 import { AppShell } from '@/layout/AppShell';
 import { AdminPlaceholderPage } from '@/pages/AdminPlaceholderPage';
@@ -38,4 +39,4 @@ export const router = createBrowserRouter([
         ],
     },
     { path: '*', element: <NotFoundPage /> },
-]);
+], { basename: BASE_PATH || undefined });
