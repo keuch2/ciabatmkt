@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+
+        // El HTML de un dashboard se guarda tal cual fue cargado, sin recortar espacios.
+        $middleware->trimStrings(except: ['html']);
 
         $middleware->alias([
             'super_admin' => EnsureSuperAdmin::class,
@@ -52,7 +56,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) use ($isApi) {
             if ($isApi($request)) {
-                return response()->json(['message' => 'El recurso solicitado no existe.'], 404);
+                $own = $e->getMessage() !== '' && ! $e->getPrevious() instanceof ModelNotFoundException;
+
+                return response()->json(['message' => $own ? $e->getMessage() : 'El recurso solicitado no existe.'], 404);
             }
         });
 

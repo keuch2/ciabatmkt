@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -20,10 +22,18 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
-    // Semana 2 y 3: /dashboards, /dashboards/{id}, params, history.
+    Route::get('dashboards', [DashboardController::class, 'index']);
+    Route::get('dashboards/{dashboard}', [DashboardController::class, 'show']);
+    // Semana 3: params y history.
 });
 
 Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->group(function () {
+    Route::get('dashboards', [DashboardAdminController::class, 'index']);
+    Route::post('dashboards/preview', [DashboardAdminController::class, 'preview']);
+    Route::post('dashboards', [DashboardAdminController::class, 'store']);
+    Route::put('dashboards/{dashboard}', [DashboardAdminController::class, 'update']);
+    Route::delete('dashboards/{dashboard}', [DashboardAdminController::class, 'destroy']);
+
     Route::get('users', [UserAdminController::class, 'index']);
-    // Semana 2 y 4: /admin/dashboards, overview, history, users store/update.
+    // Semana 4: overview, history, users store/update.
 });

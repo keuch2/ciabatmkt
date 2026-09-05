@@ -7,15 +7,27 @@ import { withBase } from '@/app/basePath';
 
 export type ValidationErrors = Record<string, string[]>;
 
+export interface ApiProblem {
+    rule: number;
+    path: string;
+    message: string;
+}
+
 export class ApiError extends Error {
     readonly status: number;
     readonly errors: ValidationErrors;
+    /** Problemas del validador de carga de dashboards (422 con lista detallada). */
+    readonly problems: ApiProblem[];
+    /** Cuerpo completo de la respuesta, para campos adicionales como existing_id. */
+    readonly payload: Record<string, unknown>;
 
-    constructor(status: number, message: string, errors: ValidationErrors = {}) {
+    constructor(status: number, message: string, errors: ValidationErrors = {}, problems: ApiProblem[] = [], payload: Record<string, unknown> = {}) {
         super(message);
         this.name = 'ApiError';
         this.status = status;
         this.errors = errors;
+        this.problems = problems;
+        this.payload = payload;
     }
 
     /** Primer mensaje de validación para un campo, si existe. */
@@ -74,8 +86,14 @@ async function request<T>(method: Method, url: string, body: unknown, retryOnCsr
     const data: unknown = await response.json().catch(() => null);
 
     if (!response.ok) {
-        const payload = (data ?? {}) as { message?: string; errors?: ValidationErrors };
-        throw new ApiError(response.status, payload.message ?? `Error ${response.status}`, payload.errors ?? {});
+        const payload = (data ?? {}) as { message?: string; errors?: ValidationErrors; problems?: ApiProblem[] };
+        throw new ApiError(
+            response.status,
+            payload.message ?? `Error ${response.status}`,
+            payload.errors ?? {},
+            payload.problems ?? [],
+            payload as Record<string, unknown>,
+        );
     }
 
     return data as T;

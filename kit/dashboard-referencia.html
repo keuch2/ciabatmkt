@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ventas por sucursal (dashboard de referencia)</title>
+
+<!--
+  DASHBOARD DE REFERENCIA — Plataforma de Dashboards Ciabay
+  ==========================================================
+  Este archivo muestra el contrato completo que debe cumplir un dashboard:
+
+  1. Un único bloque <script type="application/json" id="dashboard-manifest"> que declara
+     los parámetros editables. Acá se usan los siete tipos soportados.
+  2. Todo el HTML, CSS y JS viene en este mismo archivo. No hay archivos relativos.
+  3. El dashboard lee sus valores de Dashboard.params, se suscribe a cambios con
+     Dashboard.onChange, informa su altura con Dashboard.setHeight y avisa que terminó
+     de inicializar con Dashboard.ready().
+  4. No usa almacenamiento del navegador ni peticiones de red: los datos van embebidos.
+
+  El objeto global Dashboard lo inyecta la plataforma antes de que corra este script.
+  Si abrís el archivo suelto en un navegador, el bloque "modo suelto" de abajo crea un
+  Dashboard mínimo con los defaults del manifiesto para poder probarlo igual.
+-->
+
+<script type="application/json" id="dashboard-manifest">
+{
+  "id": "ventas-sucursal",
+  "version": "1.0.0",
+  "title": "Ventas por sucursal",
+  "params": [
+    {
+      "id": "meta_ventas",
+      "label": "Meta de ventas mensual",
+      "type": "number",
+      "default": 450000000,
+      "min": 0,
+      "max": 2000000000,
+      "step": 10000000,
+      "unit": "Gs."
+    },
+    {
+      "id": "nombre_reporte",
+      "label": "Título del reporte",
+      "type": "text",
+      "default": "Ventas por sucursal",
+      "maxLength": 60
+    },
+    {
+      "id": "incluir_interior",
+      "label": "Incluir sucursales del interior",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "trimestre",
+      "label": "Trimestre",
+      "type": "select",
+      "default": "q1",
+      "options": [
+        { "value": "q1", "label": "Primer trimestre" },
+        { "value": "q2", "label": "Segundo trimestre" },
+        { "value": "q3", "label": "Tercer trimestre" },
+        { "value": "q4", "label": "Cuarto trimestre" }
+      ]
+    },
+    {
+      "id": "descuento",
+      "label": "Descuento promocional",
+      "type": "range",
+      "default": 10,
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "%"
+    },
+    {
+      "id": "fecha_corte",
+      "label": "Fecha de corte",
+      "type": "date",
+      "default": "2026-06-30",
+      "min": "2026-01-01",
+      "max": "2026-12-31"
+    },
+    {
+      "id": "color_principal",
+      "label": "Color de las barras",
+      "type": "color",
+      "default": "#1f4e79"
+    }
+  ]
+}
+</script>
+
+<style>
+  /* Estilos en línea: la plataforma no permite hojas de estilo externas fuera de los CDN autorizados. */
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; font: 14px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; color: #1e293b; background: #fff; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .meta { color: #64748b; font-size: 12px; margin-bottom: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; }
+  .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; }
+  .kpi .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
+  .kpi .value.ok { color: #15803d; }
+  .kpi .value.bad { color: #b91c1c; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-variant-numeric: tabular-nums; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; }
+  td.num, th.num { text-align: right; }
+  .bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: #f1f5f9; color: #475569; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<h1 id="titulo"></h1>
+<div class="meta" id="detalle"></div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Ventas netas</div><div class="value" id="kpi-ventas"></div></div>
+  <div class="kpi"><div class="label">Meta mensual</div><div class="value" id="kpi-meta"></div></div>
+  <div class="kpi"><div class="label">Cumplimiento</div><div class="value" id="kpi-cumplimiento"></div></div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Sucursal</th><th class="num">Ventas brutas</th><th class="num">Netas</th><th style="width:40%">vs. meta</th></tr>
+  </thead>
+  <tbody id="filas"></tbody>
+</table>
+
+<script>
+  // ---- Modo suelto: sólo actúa si la plataforma no inyectó el objeto Dashboard. ----
+  if (typeof window.Dashboard === 'undefined') {
+    var manifiesto = JSON.parse(document.getElementById('dashboard-manifest').textContent);
+    var defaults = {};
+    manifiesto.params.forEach(function (p) { defaults[p.id] = p.default; });
+    window.Dashboard = {
+      params: defaults,
+      onChange: function () {},
+      setHeight: function () {},
+      ready: function () {}
+    };
+  }
+
+  // ---- Datos embebidos: ventas mensuales promedio por sucursal y trimestre, en guaraníes. ----
+  var SUCURSALES = [
+    { nombre: 'Centro',            interior: false, ventas: { q1: 512000000, q2: 488000000, q3: 530000000, q4: 610000000 } },
+    { nombre: 'Villa Morra',       interior: false, ventas: { q1: 455000000, q2: 470000000, q3: 462000000, q4: 540000000 } },
+    { nombre: 'San Lorenzo',       interior: true,  ventas: { q1: 310000000, q2: 335000000, q3: 328000000, q4: 390000000 } },
+    { nombre: 'Ciudad del Este',   interior: true,  ventas: { q1: 402000000, q2: 415000000, q3: 440000000, q4: 505000000 } },
+    { nombre: 'Encarnación',       interior: true,  ventas: { q1: 268000000, q2: 290000000, q3: 301000000, q4: 350000000 } }
+  ];
+  var NOMBRE_TRIMESTRE = { q1: 'Primer trimestre', q2: 'Segundo trimestre', q3: 'Tercer trimestre', q4: 'Cuarto trimestre' };
+
+  function gs(n) { return 'Gs. ' + Math.round(n).toLocaleString('es-PY'); }
+  function fecha(iso) {
+    var partes = String(iso).split('-');
+    return partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : iso;
+  }
+
+  // ---- Render: lee todo de Dashboard.params, así cualquier cambio se refleja al volver a llamar. ----
+  function render() {
+    var p = Dashboard.params;
+    var lista = SUCURSALES.filter(function (s) { return p.incluir_interior || !s.interior; });
+    var factor = 1 - (Number(p.descuento) || 0) / 100;
+
+    document.getElementById('titulo').textContent = p.nombre_reporte;
+    document.getElementById('detalle').textContent =
+      NOMBRE_TRIMESTRE[p.trimestre] + ' · corte al ' + fecha(p.fecha_corte) +
+      ' · descuento ' + p.descuento + '%' + (p.incluir_interior ? '' : ' · sólo Asunción');
+
+    var total = 0;
+    var cuerpo = document.getElementById('filas');
+    cuerpo.innerHTML = '';
+
+    lista.forEach(function (s) {
+      var bruto = s.ventas[p.trimestre] || 0;
+      var neto = bruto * factor;
+      total += neto;
+      var pct = p.meta_ventas > 0 ? Math.min(neto / p.meta_ventas, 1.5) : 0;
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + s.nombre + (s.interior ? '<span class="tag">interior</span>' : '') + '</td>' +
+        '<td class="num">' + gs(bruto) + '</td>' +
+        '<td class="num">' + gs(neto) + '</td>' +
+        '<td><div class="bar"><span style="width:' + Math.round(pct / 1.5 * 100) + '%;background:' + p.color_principal + '"></span></div></td>';
+      cuerpo.appendChild(tr);
+    });
+
+    var cumplimiento = lista.length && p.meta_ventas > 0 ? (total / lista.length) / p.meta_ventas : 0;
+    document.getElementById('kpi-ventas').textContent = gs(total);
+    document.getElementById('kpi-meta').textContent = gs(p.meta_ventas);
+    var kpi = document.getElementById('kpi-cumplimiento');
+    kpi.textContent = Math.round(cumplimiento * 100) + '%';
+    kpi.className = 'value ' + (cumplimiento >= 1 ? 'ok' : 'bad');
+
+    // Informar la altura real del contenido para que el contenedor ajuste el iframe sin barras.
+    // Sin argumento, la plataforma mide el contenido por sí misma (equivale a Dashboard.contentHeight()).
+    Dashboard.setHeight();
+  }
+
+  // Cada cambio de parámetro desde el panel lateral vuelve a dibujar todo.
+  Dashboard.onChange(function () { render(); });
+
+  render();
+  Dashboard.ready();
+</script>
+</body>
+</html>
