@@ -1,0 +1,4 @@
+# Cuando el proyecto cuelga directamente del DocumentRoot (ej. http://localhost/ciabaymkt/public/),
+# nada fuera de public/ debe ser accesible: .env, storage/, vendor/, etc.
+# public/.htaccess vuelve a habilitar el acceso sólo para esa carpeta.
+Require all denied

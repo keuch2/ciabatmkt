@@ -25,14 +25,18 @@ mysql -uroot -e "create database if not exists ciabaymkt_test character set utf8
 php artisan migrate --seed
 ```
 
-Desarrollo, en dos terminales:
+En el Apache de Homebrew (DocumentRoot `/opt/homebrew/var/www`) la app se abre en
+**http://localhost/ciabaymkt/public/**. Para eso `.env` lleva:
 
-```bash
-php artisan serve        # http://localhost:8000
-npm run dev              # Vite con HMR
+```
+APP_URL=http://localhost/ciabaymkt/public
+ASSET_URL=http://localhost/ciabaymkt/public
 ```
 
-Producción o prueba sin HMR: `npm run build` y servir `public/` con Apache o nginx.
+y los assets se compilan con `npm run build` (repetir tras cada cambio de frontend si no se usa `npm run dev`).
+
+Alternativa sin Apache: `php artisan serve` en http://localhost:8000 con `APP_URL=http://localhost:8000` y sin `ASSET_URL`.
+`npm run dev` levanta Vite con HMR en cualquiera de los dos casos.
 
 ### Cuentas de prueba (seeder)
 
