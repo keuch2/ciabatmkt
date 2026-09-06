@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\ParamValueController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -24,7 +26,10 @@ Route::prefix('auth')->group(function () {
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('dashboards', [DashboardController::class, 'index']);
     Route::get('dashboards/{dashboard}', [DashboardController::class, 'show']);
-    // Semana 3: params y history.
+    Route::put('dashboards/{dashboard}/params/{paramId}', [ParamValueController::class, 'update']);
+    Route::delete('dashboards/{dashboard}/params/{paramId}', [ParamValueController::class, 'destroy']);
+    Route::delete('dashboards/{dashboard}/params', [ParamValueController::class, 'destroyAll']);
+    Route::get('dashboards/{dashboard}/history', [HistoryController::class, 'index']);
 });
 
 Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->group(function () {

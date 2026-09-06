@@ -26,6 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // El HTML de un dashboard se guarda tal cual fue cargado, sin recortar espacios.
         $middleware->trimStrings(except: ['html']);
 
+        // Un texto vacío es un valor legítimo para un parámetro de tipo text.
+        $middleware->convertEmptyStringsToNull(except: [
+            fn (Request $request) => $request->is('api/dashboards/*/params/*'),
+        ]);
+
         $middleware->alias([
             'super_admin' => EnsureSuperAdmin::class,
             'active' => EnsureUserIsActive::class,

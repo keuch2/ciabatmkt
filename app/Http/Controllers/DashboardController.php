@@ -8,10 +8,12 @@ use App\Models\Dashboard;
 use App\Services\Params\ParamResolver;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Http\Controllers\Concerns\ResolvesVisibleDashboards;
 
 class DashboardController extends Controller
 {
+    use ResolvesVisibleDashboards;
+
     public function __construct(private readonly ParamResolver $resolver) {}
 
     public function index(): AnonymousResourceCollection
@@ -24,11 +26,7 @@ class DashboardController extends Controller
     public function show(Request $request, Dashboard $dashboard): DashboardResource
     {
         $user = $request->user();
-
-        // Un dashboard sin publicar no existe para un usuario común.
-        if (! $dashboard->is_published && ! $user->isSuperAdmin()) {
-            throw new NotFoundHttpException('El dashboard solicitado no existe o no está publicado.');
-        }
+        $this->ensureVisible($dashboard, $user);
 
         return new DashboardResource($dashboard, $this->resolver->resolve($dashboard, $user->id));
     }

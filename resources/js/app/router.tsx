@@ -37,6 +37,7 @@ export const router = createBrowserRouter(
                                 { path: 'dashboards', element: <AdminDashboardsPage /> },
                                 { path: 'dashboards/new', element: <DashboardUploadPage /> },
                                 { path: 'dashboards/:id/update', element: <DashboardUploadPage /> },
+                                { path: 'dashboards/:id/base', element: <DashboardPage scope="base" /> },
                                 { path: 'users', element: <AdminPlaceholderPage title="Usuarios" /> },
                                 { path: 'history', element: <AdminPlaceholderPage title="Historial" /> },
                             ],

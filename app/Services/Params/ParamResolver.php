@@ -39,23 +39,33 @@ class ParamResolver
         foreach ($dashboard->manifestParams() as $param) {
             $id = $param['id'];
             $stale = false;
+            // has_override: existe una fila en el nivel consultado (override del usuario, o base si se consulta sin usuario).
+            $hasOverride = $userId === null ? array_key_exists($id, $base) : array_key_exists($id, $user);
 
             foreach ([['user', $user], ['base', $base]] as [$source, $values]) {
                 if (! array_key_exists($id, $values)) {
                     continue;
                 }
                 if ($this->validator->isValid($param, $values[$id])) {
-                    $resolved[$id] = ['value' => $values[$id], 'source' => $source, 'has_override' => array_key_exists($id, $user), 'stale' => $stale];
+                    $resolved[$id] = ['value' => $values[$id], 'source' => $source, 'has_override' => $hasOverride, 'stale' => $stale];
 
                     continue 2;
                 }
                 $stale = true;
             }
 
-            $resolved[$id] = ['value' => $param['default'], 'source' => 'default', 'has_override' => array_key_exists($id, $user), 'stale' => $stale];
+            $resolved[$id] = ['value' => $param['default'], 'source' => 'default', 'has_override' => $hasOverride, 'stale' => $stale];
         }
 
         return $resolved;
+    }
+
+    /** Resolución de un solo parámetro, con su id incluido. */
+    public function resolveOne(Dashboard $dashboard, ?string $userId, string $paramId): ?array
+    {
+        $entry = $this->resolve($dashboard, $userId)[$paramId] ?? null;
+
+        return $entry === null ? null : ['param_id' => $paramId] + $entry;
     }
 
     /** Sólo los valores efectivos, clave por param_id: lo que recibe el iframe. */
