@@ -109,7 +109,16 @@ export function AdminDashboardsPage() {
                                     <td className="px-3 py-2 text-xs text-slate-500">{formatDate(d.updated_at)}</td>
                                     <td className="px-3 py-2">
                                         <div className="flex justify-end gap-1">
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/update`)}>
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//base`)}>
+                                                Valores base
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//overview`)}>
+                                                Escenarios
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/history?dashboard=`)}>
+                                                Historial
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//update`)}>
                                                 Actualizar
                                             </Button>
                                             <Button variant="ghost" loading={busy === d.id} onClick={() => togglePublish(d)}>

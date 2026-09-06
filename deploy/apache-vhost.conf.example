@@ -1,0 +1,27 @@
+<VirtualHost *:443>
+    ServerName dashboards.ciabay.com.py
+    DocumentRoot /var/www/ciabaymkt/public
+
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/dashboards.ciabay.com.py/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/dashboards.ciabay.com.py/privkey.pem
+
+    <Directory /var/www/ciabaymkt/public>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # PHP-FPM
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/run/php/php8.4-fpm.sock|fcgi://localhost"
+    </FilesMatch>
+
+    ErrorLog  ${APACHE_LOG_DIR}/ciabaymkt-error.log
+    CustomLog ${APACHE_LOG_DIR}/ciabaymkt-access.log combined
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName dashboards.ciabay.com.py
+    Redirect permanent / https://dashboards.ciabay.com.py/
+</VirtualHost>

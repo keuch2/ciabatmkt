@@ -57,6 +57,21 @@ npm run build            # Vite
 Los tests corren contra MySQL porque el esquema depende de un índice funcional con `coalesce`,
 de columnas JSON y de los triggers de historial, que SQLite no reproduce.
 
+## Documentación
+
+- `kit/ESPECIFICACION.md`: formato del manifiesto y API `Dashboard` que debe cumplir un dashboard.
+- `kit/PLANTILLA-PROMPT.md`: bloque para pegar en un asistente de IA y obtener dashboards conformes.
+- `kit/GUIA-OPERATIVA.md`: cómo publicar, actualizar, definir valores base y administrar usuarios.
+- `kit/dashboard-referencia.html`: dashboard de ejemplo con los siete tipos de parámetro.
+- `deploy/DEPLOY.md`: despliegue en el VPS (nginx o Apache, MySQL, PHP-FPM).
+- `PLAN-IMPLEMENTACION.md`: plan, decisiones y estado por semana.
+
+## Comandos
+
+```bash
+php artisan dashboards:prune-orphans --dry-run   # valores guardados de parámetros que ya no existen
+```
+
 ## Estructura
 
 ```
@@ -64,9 +79,21 @@ app/Enums/UserRole.php                 roles: super_admin | user
 app/Http/Middleware/EnsureSuperAdmin   alias 'super_admin'
 app/Http/Middleware/EnsureUserIsActive alias 'active'
 app/Models/{User,Dashboard,ParamValue,ParamValueHistory}
+app/Services/Manifest/                 extractor, validador (reglas 3-8), escáner (9-10), diff
+app/Services/Params/                   ParamValueValidator (única validación de valores), resolver, writer
+app/Services/Dashboards/               DashboardPublisher (orquesta las diez reglas)
+app/Services/Manifest/                 extractor, validador (reglas 3-8), escáner (9-10), diff
+app/Services/Params/                   ParamValueValidator (única validación de valores), resolver, writer
+app/Services/Dashboards/               DashboardPublisher (orquesta las diez reglas)
 database/migrations/                   users, dashboards, param_values, param_value_history + triggers
 resources/js/api/client.ts             fetch + XSRF para Sanctum
 resources/js/auth/                     AuthProvider y guards de ruta
 resources/js/layout/AppShell.tsx       layout con navegación por rol
+resources/js/dashboard/                iframe sandbox, preámbulo Dashboard, puente postMessage
+resources/js/params/                   controles por tipo, panel, estado con debounce
+resources/js/admin/                    publicación, usuarios, escenarios, historial
+resources/js/dashboard/                iframe sandbox, preámbulo Dashboard, puente postMessage
+resources/js/params/                   controles por tipo, panel, estado con debounce
+resources/js/admin/                    publicación, usuarios, escenarios, historial
 routes/api.php                         endpoints; routes/web.php sirve la SPA
 ```

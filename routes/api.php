@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminHistoryController;
 use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
@@ -39,6 +41,10 @@ Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->g
     Route::put('dashboards/{dashboard}', [DashboardAdminController::class, 'update']);
     Route::delete('dashboards/{dashboard}', [DashboardAdminController::class, 'destroy']);
 
+    Route::get('dashboards/{dashboard}/overview', OverviewController::class);
+    Route::get('dashboards/{dashboard}/history', AdminHistoryController::class);
+
     Route::get('users', [UserAdminController::class, 'index']);
-    // Semana 4: overview, history, users store/update.
+    Route::post('users', [UserAdminController::class, 'store']);
+    Route::put('users/{user}', [UserAdminController::class, 'update']);
 });

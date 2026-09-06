@@ -2,13 +2,16 @@ import { createBrowserRouter } from 'react-router-dom';
 import { BASE_PATH } from './basePath';
 import { AdminDashboardsPage } from '@/admin/AdminDashboardsPage';
 import { DashboardUploadPage } from '@/admin/DashboardUploadPage';
+import { HistoryPage } from '@/admin/HistoryPage';
+import { OverviewPage } from '@/admin/OverviewPage';
+import { UsersPage } from '@/admin/UsersPage';
 import { RedirectIfAuthenticated, RequireAuth, RequireSuperAdmin } from '@/auth/RequireAuth';
 import { AppShell } from '@/layout/AppShell';
-import { AdminPlaceholderPage } from '@/pages/AdminPlaceholderPage';
 import { DashboardListPage } from '@/pages/DashboardListPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { MyHistoryPage } from '@/pages/MyHistoryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 
@@ -30,6 +33,7 @@ export const router = createBrowserRouter(
                     children: [
                         { path: '/', element: <DashboardListPage /> },
                         { path: '/dashboards/:id', element: <DashboardPage /> },
+                        { path: '/dashboards/:id/history', element: <MyHistoryPage /> },
                         {
                             path: '/admin',
                             element: <RequireSuperAdmin />,
@@ -38,8 +42,9 @@ export const router = createBrowserRouter(
                                 { path: 'dashboards/new', element: <DashboardUploadPage /> },
                                 { path: 'dashboards/:id/update', element: <DashboardUploadPage /> },
                                 { path: 'dashboards/:id/base', element: <DashboardPage scope="base" /> },
-                                { path: 'users', element: <AdminPlaceholderPage title="Usuarios" /> },
-                                { path: 'history', element: <AdminPlaceholderPage title="Historial" /> },
+                                { path: 'dashboards/:id/overview', element: <OverviewPage /> },
+                                { path: 'users', element: <UsersPage /> },
+                                { path: 'history', element: <HistoryPage /> },
                             ],
                         },
                     ],

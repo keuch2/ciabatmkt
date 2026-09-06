@@ -34,7 +34,10 @@ class LoginRequest extends FormRequest
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 
-        if (! $this->user()->is_active) {
+        /** @var \App\Models\User $user */
+        $user = Auth::guard('web')->getLastAttempted();
+
+        if (! $user->is_active) {
             Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
