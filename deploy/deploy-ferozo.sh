@@ -61,20 +61,21 @@ else
   echo "    .env inicial subido"
 fi
 
-echo "==> 4/6 composer, key, migrate, caches (como $OWNER)"
+echo "==> 4/6 composer, key, migrate, caches"
+# El PHP CLI de Ferozo sólo lo puede ejecutar root; al final se devuelve la propiedad a $OWNER.
 "${SSH[@]}" "$REMOTE" bash -s <<REMOTE_SCRIPT
 set -euo pipefail
 cd '$APP_DIR'
-chown -R $OWNER . 
+export COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_HOME=/root/.composer
+$PHP_BIN /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --quiet
+grep -q '^APP_KEY=.\+' .env || $PHP_BIN artisan key:generate --force --quiet
+$PHP_BIN artisan migrate --force
+$PHP_BIN artisan optimize:clear --quiet
+$PHP_BIN artisan config:cache --quiet
+$PHP_BIN artisan route:cache --quiet
+$PHP_BIN artisan view:cache --quiet
+chown -R $OWNER .
 chmod -R ug+rwX storage bootstrap/cache
-RUN="runuser -u ${OWNER%%:*} --"
-\$RUN $PHP_BIN /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --quiet
-grep -q '^APP_KEY=.\+' .env || \$RUN $PHP_BIN artisan key:generate --force --quiet
-\$RUN $PHP_BIN artisan migrate --force
-\$RUN $PHP_BIN artisan optimize:clear --quiet
-\$RUN $PHP_BIN artisan config:cache --quiet
-\$RUN $PHP_BIN artisan route:cache --quiet
-\$RUN $PHP_BIN artisan view:cache --quiet
 REMOTE_SCRIPT
 
 echo "==> 5/6 carpeta pública $PUBLIC_DIR"
@@ -109,6 +110,8 @@ chown -R $OWNER '$PUBLIC_DIR'
 REMOTE_SCRIPT
 
 echo "==> 6/6 comprobación"
-URL="\$(grep '^APP_URL=' "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '"')"
-[ -n "\$URL" ] && curl -s -o /dev/null -w "    \$URL/up -> %{http_code}\n" "\$URL/up" || true
+URL="$("${SSH[@]}" "$REMOTE" "grep '^APP_URL=' '$APP_DIR/.env' | cut -d= -f2- | tr -d '\"'")"
+if [ -n "$URL" ]; then
+  curl -s -o /dev/null -w "    $URL/up -> %{http_code}\n" "$URL/up"
+fi
 echo "Listo."
