@@ -115,3 +115,25 @@ mysqldump --single-transaction ciabaymkt | gzip > /var/backups/ciabaymkt-$(date 
 - Sistema operativo y versiones ya instaladas en el VPS.
 - Dominio definitivo y quién gestiona el DNS y el certificado.
 - Servidor SMTP para el correo de restablecimiento.
+
+## Despliegue real: Ferozo (ciabay.com/marketing)
+
+El servidor de Ciabay es un hosting Ferozo (AlmaLinux 8, Apache, PHP-FPM 8.3, MySQL 8.0) y la
+aplicación vive en la subcarpeta `https://ciabay.com/marketing`. Se despliega con:
+
+```bash
+export SSHPASS='clave-ssh-de-root'     # o usá tu llave SSH y omití esta línea
+./deploy/deploy-ferozo.sh
+```
+
+Qué hace: compila los assets localmente (el servidor no tiene Node), sube el código por rsync a
+`/home/ciabay/ciabaymkt`, corre composer, migra, cachea, y deja en `/home/ciabay/public_html/marketing`
+el `index.php`, el `.htaccess` y un enlace a `build/`. El `.env` de producción se sube sólo la
+primera vez desde `deploy/.env.production.local` (ignorado por git); después se conserva el del servidor.
+
+Detalles del entorno:
+
+- PHP CLI: `/opt/php8-3/bin/php-cli`. El pool FPM corre como el usuario `ciabay`.
+- Base de datos `ciabay_marketing`, usuario `ciabay_mkt` (la clave está sólo en el `.env` del servidor).
+- `SESSION_PATH=/marketing` para no chocar con las cookies del sitio principal.
+- Correo: `MAIL_MAILER=log` hasta tener SMTP; el enlace de restablecimiento queda en `storage/logs`.
