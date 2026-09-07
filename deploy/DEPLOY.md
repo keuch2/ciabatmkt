@@ -133,7 +133,7 @@ primera vez desde `deploy/.env.production.local` (ignorado por git); después se
 
 Detalles del entorno:
 
-- PHP CLI: `/opt/php8-3/bin/php-cli`. El pool FPM corre como el usuario `ciabay`.
+- PHP CLI: `/opt/ferozo/php8-3/bin/php-cli` (el de `/opt/php8-3` tiene `proc_open` deshabilitado y composer falla). El pool FPM corre como el usuario `ciabay`.
 - Base de datos `ciabay_marketing`, usuario `ciabay_mkt` (la clave está sólo en el `.env` del servidor).
 - `SESSION_PATH=/marketing` para no chocar con las cookies del sitio principal.
 - Correo: `MAIL_MAILER=log` hasta tener SMTP; el enlace de restablecimiento queda en `storage/logs`.

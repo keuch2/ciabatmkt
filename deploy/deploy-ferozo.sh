@@ -25,7 +25,7 @@ DEPLOY_USER="${DEPLOY_USER:-root}"
 APP_DIR="${APP_DIR:-/home/ciabay/ciabaymkt}"
 PUBLIC_DIR="${PUBLIC_DIR:-/home/ciabay/public_html/marketing}"
 OWNER="${OWNER:-ciabay:ciabay}"
-PHP_BIN="${PHP_BIN:-/opt/php8-3/bin/php-cli}"
+PHP_BIN="${PHP_BIN:-/opt/ferozo/php8-3/bin/php-cli}"
 ENV_FILE="${ENV_FILE:-deploy/.env.production.local}"
 
 cd "$(dirname "$0")/.."
