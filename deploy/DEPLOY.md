@@ -119,7 +119,7 @@ mysqldump --single-transaction ciabaymkt | gzip > /var/backups/ciabaymkt-$(date 
 ## Despliegue real: Ferozo (ciabay.com/marketing)
 
 El servidor de Ciabay es un hosting Ferozo (AlmaLinux 8, Apache, PHP-FPM 8.3, MySQL 8.0) y la
-aplicación vive en la subcarpeta `https://ciabay.com/marketing`. Se despliega con:
+aplicación vive en la subcarpeta `https://www.ciabay.com/marketing` (el host sin `www` redirige con 301). Se despliega con:
 
 ```bash
 export SSHPASS='clave-ssh-de-root'     # o usá tu llave SSH y omití esta línea

@@ -14,6 +14,7 @@
 #   OWNER        usuario:grupo dueño de los archivos (el del pool PHP-FPM)
 #   PHP_BIN      PHP 8.3 CLI en el servidor
 #   ENV_FILE     .env local para subir SÓLO si el servidor todavía no tiene uno
+#   CANONICAL_HOST  host al que se redirige todo lo demás (vacío = sin redirección)
 #
 # Contraseña SSH: exportá SSHPASS=... para usar sshpass; si no, ssh pide la clave o usa tu llave.
 
@@ -27,6 +28,7 @@ PUBLIC_DIR="${PUBLIC_DIR:-/home/ciabay/public_html/marketing}"
 OWNER="${OWNER:-ciabay:ciabay}"
 PHP_BIN="${PHP_BIN:-/opt/ferozo/php8-3/bin/php-cli}"
 ENV_FILE="${ENV_FILE:-deploy/.env.production.local}"
+CANONICAL_HOST="${CANONICAL_HOST:-www.ciabay.com}"
 
 cd "$(dirname "$0")/.."
 
@@ -84,6 +86,10 @@ set -euo pipefail
 mkdir -p '$PUBLIC_DIR'
 # .htaccess de Laravel sin la directiva Require (sólo hace falta en el entorno local)
 grep -v '^Require all granted' '$APP_DIR/public/.htaccess' | grep -v 'Única carpeta accesible' > '$PUBLIC_DIR/.htaccess'
+# Host canónico: todo lo que entre por ciabay.com se redirige a www.ciabay.com (cookies en un solo host).
+if [ -n "$CANONICAL_HOST" ]; then
+  sed -i "s|^    RewriteEngine On\$|    RewriteEngine On\n\n    # Host canónico\n    RewriteCond %{HTTP_HOST} !^$CANONICAL_HOST\$ [NC]\n    RewriteRule ^ https://$CANONICAL_HOST%{REQUEST_URI} [L,R=301]|" '$PUBLIC_DIR/.htaccess'
+fi
 cp -f '$APP_DIR/public/robots.txt' '$PUBLIC_DIR/robots.txt' 2>/dev/null || true
 cp -f '$APP_DIR/public/favicon.ico' '$PUBLIC_DIR/favicon.ico' 2>/dev/null || true
 ln -sfn '$APP_DIR/public/build' '$PUBLIC_DIR/build'
