@@ -45,6 +45,9 @@ export function AppShell() {
                             <NavLink to="/admin/history" className={linkClass}>
                                 Historial
                             </NavLink>
+                            <NavLink to="/admin/docs" className={linkClass}>
+                                Docs
+                            </NavLink>
                         </div>
                     )}
                 </nav>

@@ -62,3 +62,18 @@ export function getAdminHistory(dashboardId: string, filters: HistoryFilters): P
     const qs = query.toString();
     return api('GET', `/api/admin/dashboards/${dashboardId}/history${qs ? `?${qs}` : ''}`);
 }
+
+/* ---------- Documentación ---------- */
+
+export interface Docs {
+    prompt: { intro_html: string; text: string; example_html: string };
+    specification_html: string;
+    guide_html: string;
+    cdn_allowlist: string[];
+}
+
+export function getDocs(): Promise<Docs> {
+    return api('GET', '/api/admin/docs');
+}
+
+export const REFERENCE_DASHBOARD_PATH = '/api/admin/docs/dashboard-referencia.html';

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminHistoryController;
 use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\DocsController;
 use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\DashboardController;
@@ -43,6 +44,9 @@ Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->g
 
     Route::get('dashboards/{dashboard}/overview', OverviewController::class);
     Route::get('dashboards/{dashboard}/history', AdminHistoryController::class);
+
+    Route::get('docs', [DocsController::class, 'index']);
+    Route::get('docs/dashboard-referencia.html', [DocsController::class, 'referenceDashboard']);
 
     Route::get('users', [UserAdminController::class, 'index']);
     Route::post('users', [UserAdminController::class, 'store']);
