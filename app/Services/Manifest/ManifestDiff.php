@@ -58,7 +58,15 @@ class ManifestDiff
             }
         }
 
+        $oldCollections = array_map(fn ($c) => $c['id'], array_filter($old['collections'] ?? [], fn ($c) => is_array($c) && is_string($c['id'] ?? null)));
+        $newCollections = array_map(fn ($c) => $c['id'], array_filter($new['collections'] ?? [], fn ($c) => is_array($c) && is_string($c['id'] ?? null)));
+        $collectionsAdded = array_values(array_diff($newCollections, $oldCollections));
+        $collectionsRemoved = array_values(array_diff($oldCollections, $newCollections));
+
         $warnings = [];
+        foreach ($collectionsRemoved as $id) {
+            $warnings[] = "La colección «{$id}» desaparece del manifiesto: sus registros quedan en la base pero el dashboard ya no podrá leerlos.";
+        }
         foreach ($typeChanged as $change) {
             $warnings[] = "El parámetro «{$change['id']}» cambia de tipo {$change['from']} a {$change['to']}: los valores guardados con el tipo anterior pueden quedar inválidos y se ignorarán hasta que cada usuario los vuelva a definir.";
         }
@@ -77,6 +85,8 @@ class ManifestDiff
             'type_changed' => $typeChanged,
             'modified' => $modified,
             'unchanged' => $unchanged,
+            'collections_added' => $collectionsAdded,
+            'collections_removed' => $collectionsRemoved,
             'warnings' => $warnings,
         ];
     }

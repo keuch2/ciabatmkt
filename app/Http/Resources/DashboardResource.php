@@ -30,6 +30,12 @@ class DashboardResource extends JsonResource
             'manifest' => $this->manifest,
             'html' => $this->html,
             'params' => $this->resolved,
+            'collections' => $this->manifestCollections(),
+            'viewer' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'role' => $request->user()->role->value,
+            ] : null,
             'security' => [
                 'cdn_allowlist' => config('dashboards.cdn_allowlist'),
                 'csp' => app(HtmlSecurityScanner::class)->contentSecurityPolicy(),

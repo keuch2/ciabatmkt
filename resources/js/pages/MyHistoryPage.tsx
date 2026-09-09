@@ -40,7 +40,7 @@ export function MyHistoryPage() {
                     }}
                 >
                     <option value="">Todos los parámetros</option>
-                    {detail.data.manifest.params.map((p) => (
+                    {(detail.data.manifest.params ?? []).map((p) => (
                         <option key={p.id} value={p.id}>
                             {p.label}
                         </option>

@@ -1,9 +1,19 @@
 # Especificación del dashboard — formato del manifiesto y API `Dashboard`
 
-Un dashboard es **un solo archivo HTML autocontenido**. La plataforma lo ejecuta dentro de un
-iframe aislado, le entrega los valores de sus parámetros y guarda lo que cada usuario modifica.
-Este documento define el contrato exacto. El archivo `dashboard-referencia.html` lo implementa
-completo y comentado.
+Un dashboard es **un solo archivo HTML autocontenido** con su propia interfaz. La plataforma lo
+ejecuta dentro de un iframe aislado y le da persistencia: los datos que los usuarios cargan desde
+esa interfaz se guardan en la base de datos y los ven todos. Este documento define el contrato
+exacto. `ejemplos/traslado-maquinas-eventos.html` es un dashboard real adaptado a él;
+`dashboard-referencia.html` muestra además los parámetros escalares opcionales.
+
+Hay dos mecanismos de persistencia, y un dashboard puede usar uno, los dos o ninguno:
+
+| Mecanismo | Para qué | Quién lo ve | Cómo se edita |
+|---|---|---|---|
+| **Colecciones de registros** (`Dashboard.data`) | Datos que se cargan: solicitudes, filas, fichas, listas | Todos los usuarios | Desde la interfaz propia del dashboard |
+| **Parámetros escalares** (`Dashboard.params`) | Ajustes sueltos: una meta, un umbral, un color | Cada usuario ve su valor o el base | Con `Dashboard.setParam`, o desde la administración (valores base) |
+
+Para un dashboard como el ejemplo del cliente, alcanza con las colecciones.
 
 ## 1. Estructura del archivo
 
@@ -42,9 +52,12 @@ Reglas de forma:
 
 ```json
 {
-  "id": "ventas-trimestral",
+  "id": "traslado-maquinas-eventos",
   "version": "1.0.0",
-  "title": "Ventas Trimestral",
+  "title": "Traslado de Máquinas",
+  "collections": [
+    { "id": "solicitudes", "label": "Solicitudes de traslado", "maxRecords": 1000 }
+  ],
   "params": [ ... ]
 }
 ```
@@ -54,7 +67,19 @@ Reglas de forma:
 | `id` | texto | Identidad estable del dashboard. Minúsculas, números y guiones (`^[a-z0-9][a-z0-9-]*$`). Publicar otro archivo con el mismo `id` es **actualizar** ese dashboard. |
 | `version` | texto | Libre, se muestra a los usuarios. Subilo en cada actualización. |
 | `title` | texto | Nombre visible. |
-| `params` | arreglo | Parámetros editables, en el orden en que se mostrarán. Puede estar vacío. |
+| `collections` | arreglo, opcional | Colecciones de registros compartidos que el dashboard lee y escribe con `Dashboard.data`. |
+| `params` | arreglo, opcional | Parámetros escalares. |
+
+### 2.0 Una colección
+
+| Campo | Regla |
+|---|---|
+| `id` | Minúsculas, empieza con letra; letras, números, `_` y `-`, hasta 60. Único en el dashboard. Es el nombre que se pasa a `Dashboard.data`. |
+| `label` | Texto para la administración. |
+| `maxRecords` | Opcional. Tope de registros; por defecto y como máximo 5000. |
+| `maxBytes` | Opcional. Tope por registro en bytes de JSON; por defecto y como máximo 262144 (256 KB). |
+
+Escribir en una colección que el manifiesto no declara se rechaza con 422.
 
 ### 2.1 Un parámetro
 
@@ -116,10 +141,62 @@ Notas:
 ## 3. La API `Dashboard`
 
 La plataforma inyecta el objeto global `window.Dashboard` **antes** de que corra cualquier script
-del dashboard. Está disponible de forma síncrona: podés leer `Dashboard.params` en la primera línea
-de tu script.
+del dashboard. `Dashboard.params` y `Dashboard.user` están disponibles de forma síncrona; las
+operaciones de `Dashboard.data` devuelven promesas.
 
-### `Dashboard.params`
+### `Dashboard.data` — registros compartidos
+
+Un registro es un objeto JSON con un id propio (texto de hasta 100 caracteres: letras, números,
+`-`, `_`, `.`, `:`). La plataforma guarda el registro tal cual, con versión, autor y fecha.
+
+```js
+// Lista completa: [{ id, data, version, updated_at, updated_by: { id, name } }]
+const registros = await Dashboard.data.list('solicitudes');
+
+// Crear o reemplazar un registro por completo
+await Dashboard.data.put('solicitudes', solicitud.id, solicitud);
+
+// Borrar
+await Dashboard.data.remove('solicitudes', id);
+
+// Datos iniciales que trae el archivo: sólo se cargan si la colección está vacía
+const { seeded, records } = await Dashboard.data.seed('solicitudes', items.map(it => ({ id: it.id, data: it })));
+
+// Reemplazar toda la colección (restaurar un respaldo). Sólo super administrador.
+const { replaced, records } = await Dashboard.data.replace('solicitudes', [{ id, data }, ...]);
+
+// Cambios hechos por otros usuarios (llegan solos cada ~10 s) o conflicto de edición
+Dashboard.data.onChange(({ collection, changed, deleted, reason }) => {
+  // changed: registros nuevos o modificados; deleted: ids borrados; reason: 'sync' | 'conflict'
+});
+```
+
+Reglas:
+
+- **Concurrencia.** `put` envía la versión que el dashboard leyó por última vez. Si otro usuario
+  cambió ese registro en el medio, la escritura se rechaza: la promesa falla con
+  `error.code === 'conflict'`, `error.record` trae la versión actual y `onChange` la entrega con
+  `reason: 'conflict'`. Registros distintos nunca chocan entre sí.
+- **Guardar el registro completo.** `put` reemplaza el registro; no hay actualizaciones parciales.
+  Con un debounce corto (250 a 500 ms) por registro alcanza para escribir mientras el usuario tipea.
+- **Un `put` sin cambios reales** no genera versión nueva ni historial.
+- Los errores de validación (`error.code === 'invalid'`) traen un mensaje legible: colección no
+  declarada, id inválido, registro demasiado grande, colección llena.
+- Todo cambio queda en el historial con el usuario que lo hizo; el super administrador lo ve y
+  puede exportar cada colección como JSON.
+
+### `Dashboard.user`
+
+`{ id, name, role }` del usuario que está viendo el dashboard. `role` es `"super_admin"` o
+`"user"`. Sirve para ocultar acciones administrativas, por ejemplo restaurar un respaldo.
+
+### `Dashboard.clipboard.write(valor)`
+
+Copia un texto o un `Blob` (por ejemplo una imagen PNG) al portapapeles **a través de la
+plataforma**. Usalo como segundo intento cuando `navigator.clipboard` falle dentro del iframe.
+Devuelve una promesa; debe llamarse en respuesta a un clic del usuario.
+
+### `Dashboard.params` (parámetros escalares, opcional)
 
 Objeto plano con los valores efectivos, clave por `id` de parámetro. La plataforma lo mantiene
 actualizado: después de un cambio, `Dashboard.params.meta_ventas` ya tiene el valor nuevo.
@@ -174,18 +251,38 @@ dashboard recibe el cambio por `onChange`, igual que si viniera del panel.
 Muestra un error al usuario en el contenedor. Los errores no capturados (`window.onerror`) y las
 promesas rechazadas se reportan solos.
 
-## 4. Flujo mínimo
+## 4. Flujo mínimo con una colección
 
 ```js
-function render() {
-  var p = Dashboard.params;
-  // ...dibujar con p...
+const COLL = 'solicitudes';
+let items = [];
+
+async function boot() {
+  let records = await Dashboard.data.list(COLL);
+  if (!records.length) records = (await Dashboard.data.seed(COLL, DATOS_INICIALES.map(it => ({ id: it.id, data: it })))).records;
+  items = records.map(r => r.data);
+  render();
   Dashboard.setHeight();
+  Dashboard.ready();
 }
-Dashboard.onChange(render);
-render();
-Dashboard.ready();
+
+let timer;
+function save(item) {                       // llamar en cada cambio del usuario
+  clearTimeout(timer);
+  timer = setTimeout(() => Dashboard.data.put(COLL, item.id, item).catch(e => { if (e.code !== 'conflict') mostrarError(e.message); }), 300);
+}
+
+Dashboard.data.onChange(ev => {             // cambios de otros usuarios
+  ev.deleted.forEach(id => { items = items.filter(x => x.id !== id); });
+  ev.changed.forEach(r => { const i = items.findIndex(x => x.id === r.id); if (i >= 0) items[i] = r.data; else items.push(r.data); });
+  render();
+});
+
+boot();
 ```
+
+Si el archivo se abre suelto en un navegador no existe `window.Dashboard`: conviene un pequeño
+sustituto en memoria al principio del script (ver el ejemplo del kit).
 
 ## 5. Aislamiento
 
@@ -202,9 +299,10 @@ connect-src https://<cdn autorizados>;
 worker-src blob:
 ```
 
-Consecuencias prácticas: no hay cookies ni almacenamiento del navegador, no se puede navegar al
-padre, no se puede abrir formularios ni ventanas, y sólo se puede hablar con la plataforma por el
-objeto `Dashboard`. Todo lo que el dashboard necesita persistir es un parámetro.
+El sandbox permite scripts, diálogos (`alert`, `confirm`, `prompt`), descargas iniciadas por el
+usuario y ventanas nuevas; delega el permiso de portapapeles. No hay cookies ni almacenamiento del
+navegador y no se puede navegar al padre. Todo lo que el dashboard necesita persistir pasa por
+`Dashboard.data` o por un parámetro.
 
 ## 6. Protocolo de mensajes (referencia interna)
 
@@ -217,6 +315,8 @@ Del iframe al contenedor:
 { type: "dashboard:height", height: 840 }
 { type: "param:change", paramId: "meta_ventas", value: 500000000 }
 { type: "dashboard:error", message: "..." }
+{ type: "data:request", requestId, op: "list"|"put"|"remove"|"seed"|"replace", collection, recordId?, data?, version?, records? }
+{ type: "clipboard:write", requestId, text? , blob? }
 ```
 
 Del contenedor al iframe:
@@ -224,7 +324,13 @@ Del contenedor al iframe:
 ```js
 { type: "params:init", params: { meta_ventas: 500000000, ... } }
 { type: "params:update", params: { meta_ventas: 520000000 } }
+{ type: "data:response", requestId, ok: true, result } | { type: "data:response", requestId, ok: false, error: { code, message, record? } }
+{ type: "data:changes", collection, changed: [records], deleted: [ids] }
+{ type: "clipboard:response", requestId, ok, message? }
 ```
+
+El contenedor ejecuta cada petición de datos contra la API con la sesión del usuario: el iframe
+nunca ve cookies ni credenciales.
 
 ## 7. Cómo se resuelve un valor
 
@@ -248,3 +354,5 @@ cambiado.
   puede limpiarlos).
 - Cambiar el tipo o el rango de un parámetro: los valores guardados que ya no cumplen se ignoran.
 - Cambiar el `id` de un parámetro equivale a eliminarlo y crear otro.
+- Quitar una colección del manifiesto no borra sus registros, pero el dashboard deja de poder
+  leerlos. La administración los sigue mostrando y exportando.

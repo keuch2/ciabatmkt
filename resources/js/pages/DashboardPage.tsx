@@ -5,7 +5,6 @@ import type { ParamScope } from '@/api/params';
 import { useRequest } from '@/app/useRequest';
 import { useAuth } from '@/auth/AuthProvider';
 import { DashboardFrame } from '@/dashboard/DashboardFrame';
-import { ParamPanel } from '@/params/ParamPanel';
 import { useParamState } from '@/params/useParamState';
 import { Alert } from '@/ui/Alert';
 import { PageHeader } from '@/ui/PageHeader';
@@ -61,11 +60,6 @@ function LoadedDashboard({ data, scope }: { data: Detail; scope: ParamScope }) {
                 description={`Versión ${data.version}${scope === 'base' ? ' · edición de valores base' : ''}${!data.is_published ? ' · borrador' : ''}`}
                 actions={
                     <>
-                        {scope === 'user' && (
-                            <Link to={`/dashboards//history`} className="text-sm text-slate-600 underline-offset-2 hover:underline">
-                                Mis cambios
-                            </Link>
-                        )}
                         <Link to={scope === 'base' ? '/admin/dashboards' : '/'} className="text-sm text-slate-600 underline-offset-2 hover:underline">
                             Volver
                         </Link>
@@ -94,10 +88,16 @@ function LoadedDashboard({ data, scope }: { data: Detail; scope: ParamScope }) {
                 </div>
             )}
 
-            <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <DashboardFrame html={data.html} csp={data.security.csp} params={state.values} onParamChange={handleParamChange} onError={handleError} />
-                <ParamPanel definitions={data.manifest.params} state={state} scope={scope} />
-            </div>
+            {/* El usuario opera con la interfaz propia del dashboard: no hay panel de parámetros. */}
+            <DashboardFrame
+                dashboardId={data.id}
+                html={data.html}
+                csp={data.security.csp}
+                viewer={data.viewer}
+                params={state.values}
+                onParamChange={handleParamChange}
+                onError={handleError}
+            />
         </div>
     );
 }

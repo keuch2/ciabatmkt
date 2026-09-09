@@ -6,6 +6,8 @@ export function ManifestDiffSummary({ diff }: { diff: ManifestDiff }) {
         { label: 'Eliminados', items: diff.removed.map((p) => `${p.id} (${p.type})`), tone: 'text-red-800' },
         { label: 'Cambian de tipo', items: diff.type_changed.map((p) => `${p.id}: ${p.from} → ${p.to}`), tone: 'text-amber-800' },
         { label: 'Modificados', items: diff.modified.map((p) => `${p.id} (${p.fields.join(', ')})`), tone: 'text-slate-700' },
+        { label: 'Colecciones +', items: diff.collections_added ?? [], tone: 'text-green-800' },
+        { label: 'Colecciones −', items: diff.collections_removed ?? [], tone: 'text-red-800' },
     ];
 
     return (

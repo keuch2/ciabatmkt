@@ -48,6 +48,16 @@ class Dashboard extends Model
     }
 
     /**
+     * Colecciones de registros declaradas en el manifiesto.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function manifestCollections(): array
+    {
+        return array_values($this->manifest['collections'] ?? []);
+    }
+
+    /**
      * Parámetros declarados en el manifiesto, en el orden en que aparecen.
      *
      * @return list<array<string, mixed>>

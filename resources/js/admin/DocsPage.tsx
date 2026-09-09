@@ -27,7 +27,7 @@ export function DocsPage() {
         <div className="max-w-5xl">
             <PageHeader
                 title="Docs"
-                description="Qué pegar antes de pedir un dashboard a una IA para que sus valores se guarden en la plataforma, y cómo operarla."
+                description="Qué pegar antes de pedir un dashboard a una IA para que los datos que carguen los usuarios se guarden en la plataforma, y cómo operarla."
                 actions={
                     <a href={withBase(REFERENCE_DASHBOARD_PATH)} download className="text-sm text-slate-600 underline-offset-2 hover:underline">
                         Descargar dashboard de referencia

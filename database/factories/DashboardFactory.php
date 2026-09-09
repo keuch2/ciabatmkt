@@ -50,6 +50,22 @@ class DashboardFactory extends Factory
         });
     }
 
+    /** Manifiesto sin parámetros y con colecciones de registros compartidos. */
+    public function withCollections(array $collections): static
+    {
+        return $this->state(function (array $attributes) use ($collections) {
+            $manifest = $attributes['manifest'];
+            $manifest['params'] = [];
+            $manifest['collections'] = $collections;
+            $json = json_encode($manifest, JSON_UNESCAPED_UNICODE);
+
+            return [
+                'manifest' => $manifest,
+                'html' => "<!doctype html><html><head><script type=\"application/json\" id=\"dashboard-manifest\">{$json}</script></head><body></body></html>",
+            ];
+        });
+    }
+
     public function unpublished(): static
     {
         return $this->state(fn () => ['is_published' => false]);

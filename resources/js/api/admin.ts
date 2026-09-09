@@ -77,3 +77,51 @@ export function getDocs(): Promise<Docs> {
 }
 
 export const REFERENCE_DASHBOARD_PATH = '/api/admin/docs/dashboard-referencia.html';
+
+/* ---------- Datos compartidos (registros) ---------- */
+
+export interface DataSummary {
+    collections: { id: string; label: string | null; max_records: number | null; records: number; last_updated_at: string | null }[];
+    orphan_collections: { id: string; label: null; max_records: null; records: number; last_updated_at: null }[];
+}
+
+export function getDataSummary(dashboardId: string): Promise<DataSummary> {
+    return api('GET', `/api/admin/dashboards/${dashboardId}/data`);
+}
+
+export function getAdminRecords(dashboardId: string, collection: string): Promise<import('./records').RecordList> {
+    return api('GET', `/api/admin/dashboards/${dashboardId}/data/${encodeURIComponent(collection)}`);
+}
+
+export const exportPath = (dashboardId: string, collection: string) => `/api/admin/dashboards/${dashboardId}/data/${encodeURIComponent(collection)}/export`;
+
+export interface DataHistoryEntry {
+    id: string;
+    collection: string;
+    record_id: string;
+    action: 'insert' | 'update' | 'delete';
+    version: number;
+    old_data: unknown;
+    new_data: unknown;
+    changed_by: { id: string; name: string } | null;
+    changed_at: string | null;
+}
+
+export interface DataHistoryFilters {
+    collection?: string;
+    record_id?: string;
+    user_id?: string;
+    action?: 'insert' | 'update' | 'delete' | '';
+    from?: string;
+    to?: string;
+    page?: number;
+}
+
+export function getDataHistory(dashboardId: string, filters: DataHistoryFilters): Promise<{ data: DataHistoryEntry[]; meta: { current_page: number; last_page: number; per_page: number; total: number } }> {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+        if (value !== undefined && value !== '' && value !== null) query.set(key, String(value));
+    }
+    const qs = query.toString();
+    return api('GET', `/api/admin/dashboards/${dashboardId}/data-history${qs ? `?${qs}` : ''}`);
+}

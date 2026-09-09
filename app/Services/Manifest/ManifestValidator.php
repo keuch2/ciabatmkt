@@ -15,7 +15,13 @@ class ManifestValidator
 
     public const SLUG_PATTERN = '/^[a-z0-9][a-z0-9-]{0,99}$/';
 
-    public function __construct(private readonly ParamValueValidator $values) {}
+    public const COLLECTION_ID_PATTERN = '/^[a-z][a-z0-9_-]{0,59}$/';
+
+    public function __construct(
+        private readonly ParamValueValidator $values,
+        private readonly int $maxRecords = 5000,
+        private readonly int $maxRecordBytes = 262144,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $manifest
@@ -38,14 +44,17 @@ class ManifestValidator
         if (! is_string($manifest['title'] ?? null) || trim($manifest['title']) === '') {
             $problems[] = new ManifestProblem(3, 'title', 'El manifiesto debe tener un "title" de texto no vacío.');
         }
-        if (! array_key_exists('params', $manifest) || ! is_array($manifest['params']) || ! array_is_list($manifest['params'])) {
-            $problems[] = new ManifestProblem(3, 'params', 'El manifiesto debe tener "params" como un arreglo (puede estar vacío).');
-
-            return $problems;
+        // Un dashboard puede declarar parámetros, colecciones, ambos o ninguno.
+        $params = $manifest['params'] ?? [];
+        if (! is_array($params) || ! array_is_list($params)) {
+            $problems[] = new ManifestProblem(3, 'params', 'Si el manifiesto tiene "params", debe ser un arreglo (puede estar vacío).');
+            $params = [];
         }
 
+        $problems = [...$problems, ...$this->validateCollections($manifest)];
+
         $seen = [];
-        foreach ($manifest['params'] as $index => $param) {
+        foreach ($params as $index => $param) {
             $path = "params[{$index}]";
 
             if (! is_array($param) || array_is_list($param)) {
@@ -106,6 +115,49 @@ class ManifestValidator
             $error = $this->values->validate($param, $param['default']);
             if ($error !== null) {
                 $problems[] = new ManifestProblem(7, "{$path}.default", 'El default no es válido: '.$error);
+            }
+        }
+
+        return $problems;
+    }
+
+    /** Colecciones de registros compartidos (regla 3: forma del manifiesto). @return list<ManifestProblem> */
+    private function validateCollections(array $manifest): array
+    {
+        if (! array_key_exists('collections', $manifest)) {
+            return [];
+        }
+        $collections = $manifest['collections'];
+        if (! is_array($collections) || ! array_is_list($collections)) {
+            return [new ManifestProblem(3, 'collections', 'Si el manifiesto tiene "collections", debe ser un arreglo de objetos {id, label}.')];
+        }
+
+        $problems = [];
+        $seen = [];
+        foreach ($collections as $index => $collection) {
+            $path = "collections[{$index}]";
+            if (! is_array($collection) || array_is_list($collection)) {
+                $problems[] = new ManifestProblem(3, $path, 'Cada colección debe ser un objeto con "id" y "label".');
+
+                continue;
+            }
+            $id = $collection['id'] ?? null;
+            if (! is_string($id) || ! preg_match(self::COLLECTION_ID_PATTERN, $id)) {
+                $problems[] = new ManifestProblem(3, "{$path}.id", 'Cada colección necesita un "id" en minúsculas que empiece con letra (letras, números, guión y guión bajo, hasta 60).');
+            } else {
+                $path = "collections[{$index}] ({$id})";
+                if (isset($seen[$id])) {
+                    $problems[] = new ManifestProblem(3, "{$path}.id", "La colección «{$id}» está repetida.");
+                }
+                $seen[$id] = true;
+            }
+            if (! is_string($collection['label'] ?? null) || trim($collection['label']) === '') {
+                $problems[] = new ManifestProblem(3, "{$path}.label", 'Cada colección necesita un "label" de texto no vacío.');
+            }
+            foreach (['maxRecords' => $this->maxRecords, 'maxBytes' => $this->maxRecordBytes] as $field => $cap) {
+                if (array_key_exists($field, $collection) && (! is_int($collection[$field]) || $collection[$field] < 1 || $collection[$field] > $cap)) {
+                    $problems[] = new ManifestProblem(3, "{$path}.{$field}", "El campo «{$field}» debe ser un entero entre 1 y {$cap}.");
+                }
             }
         }
 

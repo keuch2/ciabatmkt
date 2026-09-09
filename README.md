@@ -62,7 +62,8 @@ de columnas JSON y de los triggers de historial, que SQLite no reproduce.
 - `kit/ESPECIFICACION.md`: formato del manifiesto y API `Dashboard` que debe cumplir un dashboard.
 - `kit/PLANTILLA-PROMPT.md`: bloque que se pega antes del pedido a un asistente de IA; describe sólo la integración (lectura y guardado de valores), no el diseño.
 - `kit/GUIA-OPERATIVA.md`: cómo publicar, actualizar, definir valores base y administrar usuarios.
-- `kit/dashboard-referencia.html`: dashboard de ejemplo con los siete tipos de parámetro.
+- `kit/ejemplos/traslado-maquinas-eventos.html`: dashboard real del cliente adaptado al contrato de datos compartidos (`Dashboard.data`); el original está al lado.
+- `kit/dashboard-referencia.html`: dashboard de ejemplo con los siete tipos de parámetro escalar.
 - `deploy/DEPLOY.md`: despliegue en el VPS (nginx o Apache, MySQL, PHP-FPM).
 - `PLAN-IMPLEMENTACION.md`: plan, decisiones y estado por semana.
 

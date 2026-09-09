@@ -43,10 +43,31 @@ Si el `id` del manifiesto ya existe, la plataforma no crea otro: te avisa y te l
 - **Eliminar** borra el dashboard, **todos** los valores guardados por los usuarios y su historial.
   No se puede deshacer. Preferí despublicar.
 
-## 4. Valores base
+## 4. Datos cargados por los usuarios
 
-El valor base es lo que ven todos los usuarios que no definieron un valor propio. Si no hay valor
-base, ven el `default` del manifiesto.
+Los dashboards con colecciones (por ejemplo, solicitudes de traslado) guardan en la plataforma
+lo que los usuarios cargan desde la propia interfaz del dashboard. Esos datos son **compartidos**:
+lo que carga uno lo ven todos, con unos segundos de demora si están en pantalla al mismo tiempo.
+
+**Administración → Dashboards → Datos** muestra, por colección, la cantidad de registros, el
+último cambio, cada registro con su contenido y el historial de quién creó, modificó o eliminó
+cada uno. Desde ahí se exporta cada colección como JSON.
+
+- **Cualquier usuario puede crear, editar y eliminar** registros desde el dashboard. Lo eliminado
+  queda en el historial con su contenido anterior.
+- **Datos iniciales.** La primera vez que se abre un dashboard, los datos que trae el archivo se
+  cargan en la plataforma. Después mandan los datos del servidor: republicar el archivo no los pisa.
+- **Restaurar un respaldo** (reemplazar toda una colección) es sólo para super administradores. Si
+  el dashboard ofrece esa acción, sólo la ve un super administrador.
+- Si dos personas editan **el mismo registro** al mismo tiempo, la segunda ve un aviso y el
+  registro recargado con los cambios de la otra; registros distintos no chocan.
+- Límites: 5000 registros por colección y 256 KB por registro, salvo que el manifiesto pida menos.
+
+## 5. Valores base (sólo dashboards con parámetros)
+
+Algunos dashboards declaran además parámetros escalares (una meta, un color). El valor base es lo
+que ven todos los usuarios que no definieron un valor propio. Si no hay valor base, ven el
+`default` del manifiesto.
 
 1. **Administración → Dashboards → Valores base**.
 2. Es la misma pantalla que ven los usuarios, pero cada cambio se guarda como valor base.
@@ -58,7 +79,7 @@ base, ven el `default` del manifiesto.
 Tu propio valor como usuario y el valor base son cosas distintas: en la pantalla normal del
 dashboard editás el tuyo; en "Valores base" editás el de todos.
 
-## 5. Escenarios por usuario
+## 6. Escenarios por usuario (sólo dashboards con parámetros)
 
 **Administración → Dashboards → Escenarios** muestra una matriz usuarios × parámetros con el
 valor efectivo de cada celda:
@@ -70,9 +91,9 @@ valor efectivo de cada celda:
 
 La primera fila es el valor base. Los usuarios con más valores propios aparecen primero.
 
-## 6. Historial
+## 7. Historial de parámetros
 
-**Administración → Historial** lista cada cambio de valor, de cualquier usuario y del nivel base,
+**Administración → Historial** lista cada cambio de parámetro, de cualquier usuario y del nivel base,
 filtrable por dashboard, parámetro, usuario, nivel y fechas. Lo escribe la base de datos por
 trigger: nada de lo que hacés en la aplicación puede editarlo ni borrarlo.
 
@@ -87,7 +108,7 @@ php artisan dashboards:prune-orphans               # borra
 php artisan dashboards:prune-orphans --dashboard=ventas-sucursal
 ```
 
-## 7. Usuarios
+## 8. Usuarios
 
 **Administración → Usuarios**.
 
@@ -99,14 +120,14 @@ php artisan dashboards:prune-orphans --dashboard=ventas-sucursal
   estaba conectado, pierde la sesión en su próxima acción. Sus valores y su historial se conservan.
 - No podés desactivarte ni quitarte el rol de super administrador a vos mismo.
 
-## 8. Ampliar la lista de CDN
+## 9. Ampliar la lista de CDN
 
 Los hosts permitidos para scripts, estilos y `fetch` de los dashboards se configuran en el
 servidor, en la variable `DASHBOARD_CDN_ALLOWLIST` del archivo `.env` (separados por coma).
 Después de cambiarla: `php artisan config:clear`. Los dashboards ya publicados toman la lista
 nueva al abrirse.
 
-## 9. Problemas frecuentes
+## 10. Problemas frecuentes
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
@@ -117,3 +138,5 @@ nueva al abrirse.
 | El iframe queda con un aviso de que no llamó `ready()` | El dashboard no llama `Dashboard.ready()` o tiene un error antes. | Ver los errores mostrados sobre el iframe; agregar la llamada. |
 | El iframe queda muy alto o muy bajo | El dashboard mide con `documentElement.scrollHeight` o fija `100vh`. | Usar `Dashboard.setHeight()` sin argumento y quitar alturas de viewport. |
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
+| "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
+| Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |

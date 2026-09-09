@@ -27,7 +27,8 @@ export interface Manifest {
     id: string;
     version: string;
     title: string;
-    params: ParamDefinition[];
+    params?: ParamDefinition[];
+    collections?: CollectionDefinition[];
 }
 
 export interface ResolvedParam {
@@ -49,6 +50,13 @@ export interface DashboardSummary {
     updated_at: string | null;
 }
 
+export interface CollectionDefinition {
+    id: string;
+    label: string;
+    maxRecords?: number;
+    maxBytes?: number;
+}
+
 export interface DashboardDetail {
     id: string;
     slug: string;
@@ -58,6 +66,8 @@ export interface DashboardDetail {
     manifest: Manifest;
     html: string;
     params: Record<string, ResolvedParam>;
+    collections: CollectionDefinition[];
+    viewer: { id: string; name: string; role: 'super_admin' | 'user' } | null;
     security: { cdn_allowlist: string[]; csp: string };
     created_at: string | null;
     updated_at: string | null;
@@ -79,6 +89,8 @@ export interface ManifestDiff {
     type_changed: { id: string; from: string; to: string }[];
     modified: { id: string; fields: string[] }[];
     unchanged: number;
+    collections_added: string[];
+    collections_removed: string[];
     warnings: string[];
 }
 

@@ -140,6 +140,27 @@ class ManifestValidatorTest extends TestCase
         $this->assertStringContainsString('repetido', $problems[0]['message']);
     }
 
+    public function test_params_are_optional_and_collections_are_validated(): void
+    {
+        $manifest = ['id' => 'traslados', 'version' => '1', 'title' => 'Traslados', 'collections' => [['id' => 'solicitudes', 'label' => 'Solicitudes', 'maxRecords' => 100]]];
+        $this->assertSame([], $this->problems($manifest));
+
+        $manifest['collections'] = [
+            ['id' => 'Solicitudes', 'label' => 'S'],
+            ['id' => 'ok', 'label' => ''],
+            ['id' => 'ok', 'label' => 'Dup', 'maxRecords' => 999999],
+            'texto',
+        ];
+        $problems = $this->problems($manifest);
+
+        $this->assertSame([3, 3, 3, 3, 3], array_column($problems, 'rule'));
+        $this->assertSame('collections[0].id', $problems[0]['path']);
+        $this->assertSame('collections[1] (ok).label', $problems[1]['path']);
+        $this->assertStringContainsString('repetida', $problems[2]['message']);
+        $this->assertStringContainsString('entre 1 y 5000', $problems[3]['message']);
+        $this->assertSame('collections[3]', $problems[4]['path']);
+    }
+
     public function test_reports_every_problem_at_once(): void
     {
         $manifest = $this->fullManifest();

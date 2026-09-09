@@ -4,10 +4,12 @@ use App\Http\Controllers\Admin\AdminHistoryController;
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\DocsController;
 use App\Http\Controllers\Admin\OverviewController;
+use App\Http\Controllers\Admin\RecordAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ParamValueController;
+use App\Http\Controllers\RecordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -33,6 +35,14 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::delete('dashboards/{dashboard}/params/{paramId}', [ParamValueController::class, 'destroy']);
     Route::delete('dashboards/{dashboard}/params', [ParamValueController::class, 'destroyAll']);
     Route::get('dashboards/{dashboard}/history', [HistoryController::class, 'index']);
+
+    // Registros compartidos (datos cargados desde la interfaz del dashboard).
+    Route::get('dashboards/{dashboard}/data/{collection}', [RecordController::class, 'index']);
+    Route::get('dashboards/{dashboard}/data/{collection}/changes', [RecordController::class, 'changes']);
+    Route::post('dashboards/{dashboard}/data/{collection}/seed', [RecordController::class, 'seed']);
+    Route::post('dashboards/{dashboard}/data/{collection}/replace', [RecordController::class, 'replace']);
+    Route::put('dashboards/{dashboard}/data/{collection}/{recordId}', [RecordController::class, 'update']);
+    Route::delete('dashboards/{dashboard}/data/{collection}/{recordId}', [RecordController::class, 'destroy']);
 });
 
 Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->group(function () {
@@ -44,6 +54,10 @@ Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->g
 
     Route::get('dashboards/{dashboard}/overview', OverviewController::class);
     Route::get('dashboards/{dashboard}/history', AdminHistoryController::class);
+    Route::get('dashboards/{dashboard}/data', [RecordAdminController::class, 'summary']);
+    Route::get('dashboards/{dashboard}/data-history', [RecordAdminController::class, 'history']);
+    Route::get('dashboards/{dashboard}/data/{collection}', [RecordAdminController::class, 'records']);
+    Route::get('dashboards/{dashboard}/data/{collection}/export', [RecordAdminController::class, 'export']);
 
     Route::get('docs', [DocsController::class, 'index']);
     Route::get('docs/dashboard-referencia.html', [DocsController::class, 'referenceDashboard']);
