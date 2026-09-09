@@ -5,8 +5,10 @@ super administrador.
 
 ## 1. Publicar un dashboard nuevo
 
-1. Conseguí el archivo `.html` (ver `PLANTILLA-PROMPT.md` para generarlo con IA, o
-   `dashboard-referencia.html` como base).
+1. Conseguí el archivo `.html`. Si lo generás con un asistente de IA, pegá antes de tu pedido el
+   bloque de **Administración → Docs** (también en `PLANTILLA-PROMPT.md`): describe sólo cómo se
+   leen y guardan los valores; el diseño lo decidís vos en el pedido. `dashboard-referencia.html`
+   muestra el resultado esperado.
 2. Probalo suelto: abrí el archivo en el navegador. Debe dibujarse con sus valores por defecto.
 3. **Administración → Dashboards → Cargar dashboard** y elegí el archivo.
 4. La plataforma corre el validador sin guardar nada y muestra el resultado:

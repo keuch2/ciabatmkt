@@ -1,51 +1,50 @@
-# Plantilla de prompt para generar dashboards con IA
+# Plantilla de prompt: integración con la plataforma
 
-Copiá todo el bloque de abajo (desde `---INICIO---` hasta `---FIN---`) y pegalo en el chat antes
-de describir el dashboard que querés. Después del bloque, describí en tus palabras qué debe
-mostrar, qué datos usa y qué querés poder ajustar.
+Este bloque se pega **al inicio** del prompt con el que le pedís a un asistente de IA que cree tu
+dashboard. Sólo explica cómo el dashboard lee los valores editables y cómo la plataforma los
+guarda en su base de datos. **No dice nada sobre el diseño**: el aspecto, la estructura, los
+datos y las gráficas los definís vos en tu pedido, como quieras.
 
-Cuando el archivo esté listo, publicalo desde **Administración → Dashboards → Cargar dashboard**.
-La plataforma valida las reglas antes de guardar y te muestra la línea exacta de cualquier problema;
-pegá ese mensaje al asistente y pedile que lo corrija.
+Cómo usarlo:
+
+1. Copiá el bloque de abajo (desde `---INICIO---` hasta `---FIN---`) y pegalo en el chat.
+2. Debajo, escribí tu pedido normal: qué muestra el dashboard, con qué datos, con qué estilo.
+3. Publicá el archivo resultante desde **Administración → Dashboards → Cargar dashboard**. Si el
+   validador marca algún problema, pegá ese mensaje al asistente y pedile que lo corrija.
 
 ---INICIO---
 
-Necesito que generes un **dashboard HTML autocontenido** para una plataforma interna que lo
-ejecuta dentro de un iframe aislado. Respetá estrictamente estas reglas; el archivo se rechaza si
-incumple alguna.
+El dashboard que te voy a pedir a continuación se publica en una plataforma interna que lo
+ejecuta dentro de un iframe y **guarda en su base de datos los valores que cada usuario ajusta**.
+Este bloque describe únicamente esa integración. El diseño, la estructura, los datos y el estilo
+los defino yo en el pedido que sigue; no impongas ni cambies nada de eso por lo que leas acá.
 
-## Formato del archivo
+## 1. Qué se guarda: los parámetros
 
-- Un único archivo `.html` con `<!DOCTYPE html>`, `<html lang="es">`, `<head>` y `<body>`.
-- Todo el CSS en `<style>` y todo el JS en `<script>` dentro del mismo archivo. Prohibido
-  referenciar archivos relativos (`./app.js`, `estilos.css`, imágenes locales).
-- Librerías externas sólo por `<script src="https://...">` desde estos hosts:
-  `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`. Preferí no usar ninguna; si usás una
-  (por ejemplo Chart.js), pinneá la versión.
-- Los datos van embebidos en el archivo como constantes JS.
-- Prohibido usar `localStorage`, `sessionStorage`, `document.cookie`, `XMLHttpRequest`,
-  `WebSocket`, `navigator.sendBeacon`. Prohibido `fetch()` salvo a una URL literal de los hosts
-  de arriba.
-- Idioma de la interfaz: español (Paraguay). Formato de números con `toLocaleString('es-PY')`.
-  Moneda: guaraníes (`Gs.`).
+Todo valor que un usuario quiera ajustar sin editar el archivo (una meta, un umbral, un
+porcentaje, un período, un filtro, una fecha de corte, un título, un color, un interruptor de
+mostrar/ocultar) es un **parámetro**. Los datos de fondo (tablas, series) no lo son: van embebidos
+en el archivo. La plataforma genera sola los controles de edición para cada parámetro y los
+muestra fuera del dashboard; **no agregues controles propios** salvo que yo te los pida.
 
-## Manifiesto obligatorio
+## 2. Manifiesto
 
-Dentro de `<head>` va exactamente un bloque:
+Dentro de `<head>` va exactamente un bloque que declara los parámetros:
 
 ```html
 <script type="application/json" id="dashboard-manifest">
 {
   "id": "identificador-en-minusculas-con-guiones",
   "version": "1.0.0",
-  "title": "Título visible",
+  "title": "Título del dashboard",
   "params": [ ... ]
 }
 </script>
 ```
 
-Cada parámetro tiene `id` (empieza con letra; letras, números, `_`), `label`, `type` y `default`.
-Tipos permitidos y sus campos (ningún otro tipo es válido):
+Cada parámetro tiene `id` (empieza con letra; letras, números, `_`), `label` (texto que ve el
+usuario), `type` y `default` (valor inicial). Tipos permitidos y sus campos; **ningún otro tipo es
+válido**:
 
 | type | requeridos | opcionales |
 |---|---|---|
@@ -57,34 +56,37 @@ Tipos permitidos y sus campos (ningún otro tipo es válido):
 | `date` | `default` en `AAAA-MM-DD` | `min`, `max` en `AAAA-MM-DD` |
 | `color` | `default` en `#RRGGBB` | — |
 
-Cada `default` debe cumplir su tipo y su rango. Los `id` no se repiten. Declará como parámetro
-**todo lo que un usuario querría ajustar**: metas, umbrales, filtros, períodos, colores, títulos.
+Cada `default` debe cumplir su tipo y su rango. Los `id` no se repiten. Poné `min`/`max`
+razonables en los numéricos.
 
-## API que te da la plataforma
+## 3. Cómo se leen y se guardan los valores
 
-Antes de tu script existe `window.Dashboard`:
+La plataforma inyecta `window.Dashboard` **antes** de que corra cualquier script del archivo:
 
-- `Dashboard.params` — objeto con los valores actuales, clave por `id` de parámetro. Leelo, no lo
-  modifiques.
-- `Dashboard.onChange(fn)` — `fn(params, changedIds)` se llama cuando cambia algún parámetro.
-- `Dashboard.setHeight()` — sin argumento mide el contenido e informa la altura. Llamala al final
-  de cada render. No midas con `document.documentElement.scrollHeight`.
-- `Dashboard.ready()` — llamala una vez al terminar de inicializar.
-- `Dashboard.setParam(id, value)` — opcional, para cambiar un parámetro desde el propio dashboard.
+- `Dashboard.params` — objeto con los valores actuales, clave por `id` de parámetro. Todo lo que
+  dependa de un parámetro se lee de acá en el momento de dibujar, nunca de una constante.
+- `Dashboard.onChange(fn)` — `fn(params, changedIds)` se llama cuando el usuario cambia un
+  parámetro. Volvé a dibujar lo que corresponda leyendo `Dashboard.params`.
+- `Dashboard.setParam(id, value)` — si el dashboard tiene algún control propio para un
+  parámetro, en su evento de cambio llamá a esto: la plataforma valida, guarda y avisa por
+  `onChange`. Nunca guardes valores por tu cuenta.
+- `Dashboard.setHeight()` — sin argumento, mide el contenido e informa la altura al contenedor.
+  Llamala al final de cada dibujo. No midas con `document.documentElement.scrollHeight`.
+- `Dashboard.ready()` — llamala una vez, al terminar la inicialización.
 
-Estructura obligatoria del script principal:
+Estructura mínima del script principal:
 
 ```js
 if (typeof window.Dashboard === 'undefined') {
-  // Modo suelto para probar el archivo abierto directamente en un navegador.
-  var m = JSON.parse(document.getElementById('dashboard-manifest').textContent);
-  var d = {}; m.params.forEach(function (p) { d[p.id] = p.default; });
-  window.Dashboard = { params: d, onChange: function () {}, setHeight: function () {}, ready: function () {}, setParam: function () {} };
+  // Permite abrir el archivo suelto en un navegador, sin la plataforma.
+  var __m = JSON.parse(document.getElementById('dashboard-manifest').textContent);
+  var __d = {}; __m.params.forEach(function (p) { __d[p.id] = p.default; });
+  window.Dashboard = { params: __d, onChange: function () {}, setHeight: function () {}, ready: function () {}, setParam: function () {} };
 }
 
 function render() {
   var p = Dashboard.params;
-  // ...dibujar todo leyendo p...
+  // ...dibujar leyendo p...
   Dashboard.setHeight();
 }
 
@@ -93,24 +95,31 @@ render();
 Dashboard.ready();
 ```
 
-## Estilo
+## 4. Requisitos técnicos del entorno aislado
 
-- Sobrio y funcional: fondo blanco, tipografía del sistema, densidad alta, sin decoración.
-- `body { margin: 0; padding: 16px; }`. Sin `height: 100vh` ni `min-height: 100vh` en `html`
-  o `body` (rompe la medición de altura).
-- Responsive: el ancho del iframe lo decide la plataforma.
+El archivo se rechaza al publicarlo si incumple alguno:
+
+- Un único archivo `.html` autocontenido: CSS y JS dentro del mismo archivo, sin referencias a
+  archivos relativos (`./app.js`, `estilos.css`, imágenes locales; las imágenes van como `data:`
+  URI).
+- Librerías y fuentes externas sólo desde `cdn.jsdelivr.net`, `cdnjs.cloudflare.com` o
+  `unpkg.com`, por `https`.
+- Prohibido `localStorage`, `sessionStorage`, `document.cookie`, `XMLHttpRequest`, `WebSocket`,
+  `navigator.sendBeacon`. Prohibido `fetch()` salvo a una URL literal de los hosts de arriba. Lo
+  que haga falta persistir es un parámetro.
+- Sin `height: 100vh` ni `min-height: 100vh` en `html` o `body`: el alto lo fija la plataforma a
+  partir de `Dashboard.setHeight()`.
 
 ## Entrega
 
-Devolvé el archivo completo en un solo bloque de código, listo para guardar como `.html`.
-Antes de entregarlo, verificá mentalmente la lista de reglas de arriba, una por una.
+El archivo completo en un solo bloque de código, y debajo la lista de parámetros declarados
+(id, tipo, default). Antes de entregar, verificá las reglas de arriba una por una.
 
 ---FIN---
 
-Ahora describí tu dashboard. Ejemplo:
+Después del bloque, escribí tu pedido con total libertad. Por ejemplo:
 
-> Quiero un dashboard de cumplimiento de ventas por sucursal. Datos: cinco sucursales con ventas
-> mensuales por trimestre (inventá cifras realistas en guaraníes). Parámetros: meta mensual
-> (número), trimestre (select), incluir sucursales del interior (boolean), descuento aplicado
-> (range 0–50 %), fecha de corte (date), color de las barras (color) y título del reporte (text).
-> Mostrá tres indicadores arriba y una tabla con barras de avance por sucursal.
+> Quiero un dashboard de cumplimiento de ventas por sucursal, estilo minimalista con fondo
+> oscuro y gráficas de barras horizontales. Datos: cinco sucursales con ventas por trimestre.
+> Debe poder ajustarse la meta mensual, el trimestre, si se incluyen sucursales del interior y
+> el color de las barras.

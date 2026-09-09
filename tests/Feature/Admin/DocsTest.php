@@ -17,7 +17,8 @@ class DocsTest extends TestCase
         $response->assertOk();
         $prompt = $response->json('prompt.text');
 
-        $this->assertStringStartsWith('Necesito que generes un **dashboard HTML autocontenido**', $prompt);
+        $this->assertStringStartsWith('El dashboard que te voy a pedir a continuación', $prompt);
+        $this->assertStringContainsString('no impongas ni cambies nada de eso', $prompt);
         $this->assertStringContainsString('id="dashboard-manifest"', $prompt);
         $this->assertStringNotContainsString('---INICIO---', $prompt);
         $this->assertStringNotContainsString('---FIN---', $prompt);

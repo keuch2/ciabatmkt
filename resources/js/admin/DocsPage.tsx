@@ -10,7 +10,7 @@ import { Spinner } from '@/ui/Spinner';
 type Tab = 'prompt' | 'spec' | 'guide';
 
 const TABS: { id: Tab; label: string }[] = [
-    { id: 'prompt', label: 'Prompt para generar dashboards' },
+    { id: 'prompt', label: 'Prompt de integración' },
     { id: 'spec', label: 'Especificación técnica' },
     { id: 'guide', label: 'Guía operativa' },
 ];
@@ -27,7 +27,7 @@ export function DocsPage() {
         <div className="max-w-5xl">
             <PageHeader
                 title="Docs"
-                description="Cómo generar dashboards compatibles con la plataforma y cómo operarla."
+                description="Qué pegar antes de pedir un dashboard a una IA para que sus valores se guarden en la plataforma, y cómo operarla."
                 actions={
                     <a href={withBase(REFERENCE_DASHBOARD_PATH)} download className="text-sm text-slate-600 underline-offset-2 hover:underline">
                         Descargar dashboard de referencia
@@ -81,7 +81,7 @@ function PromptTab({ intro, text, example }: { intro: string; text: string; exam
                 <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2">
                     <div>
                         <p className="text-sm font-semibold text-slate-900">Bloque para pegar al inicio del prompt</p>
-                        <p className="text-xs text-slate-500">Copialo completo. Después del bloque, describí el dashboard que necesitás.</p>
+                        <p className="text-xs text-slate-500">Copialo completo. Después del bloque, describí tu dashboard como quieras: el diseño es tuyo.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         {copied === 'ok' && <span className="text-xs text-green-700">Copiado</span>}
@@ -94,7 +94,7 @@ function PromptTab({ intro, text, example }: { intro: string; text: string; exam
                     value={text}
                     onFocus={(e) => e.currentTarget.select()}
                     className="block h-[28rem] w-full resize-y bg-slate-50 p-4 font-mono text-xs leading-relaxed text-slate-800 focus:outline-none"
-                    aria-label="Prompt para generar dashboards"
+                    aria-label="Prompt de integración"
                 />
             </div>
 
