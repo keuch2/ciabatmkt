@@ -14,8 +14,8 @@ import { PageHeader } from '@/ui/PageHeader';
 import { Spinner } from '@/ui/Spinner';
 import { AssignmentFields } from './AssignmentFields';
 
-/** Quién ve un dashboard y con qué ícono. Se guarda sin volver a subir el archivo. */
-export function DashboardAssignmentPage() {
+/** Edición de un dashboard: ícono, quién lo ve y publicación. El archivo se reemplaza aparte. */
+export function DashboardEditPage() {
     const { id = '' } = useParams();
     const navigate = useNavigate();
     const { reload: reloadMenu } = useMenu();
@@ -25,6 +25,7 @@ export function DashboardAssignmentPage() {
 
     const [icon, setIcon] = useState<IconKey | null>(null);
     const [visibleToAll, setVisibleToAll] = useState(false);
+    const [published, setPublished] = useState(true);
     const [divisionIds, setDivisionIds] = useState<string[]>([]);
     const [groupIds, setGroupIds] = useState<string[]>([]);
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
@@ -35,6 +36,7 @@ export function DashboardAssignmentPage() {
         if (!dashboard) return;
         setIcon(isIconKey(dashboard.icon) ? dashboard.icon : null);
         setVisibleToAll(dashboard.visible_to_all);
+        setPublished(dashboard.is_published);
         setDivisionIds((dashboard.divisions ?? []).map((d) => d.id));
         setGroupIds((dashboard.groups ?? []).map((g) => g.id));
     }, [dashboard]);
@@ -44,9 +46,9 @@ export function DashboardAssignmentPage() {
         setErrors({});
         setMessage(null);
         try {
-            const result = await updateDashboard(id, { icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds });
+            const result = await updateDashboard(id, { icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds, is_published: published });
             void reloadMenu();
-            navigate('/admin/dashboards', { state: { notice: `Visibilidad de «${result.data.title}» guardada.` } });
+            navigate('/admin/dashboards', { state: { notice: `«${result.data.title}» guardado.` } });
         } catch (e) {
             if (e instanceof ApiError) {
                 setErrors(Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])));
@@ -68,8 +70,8 @@ export function DashboardAssignmentPage() {
     return (
         <div className="max-w-3xl">
             <PageHeader
-                title={`Visibilidad · ${dashboard.title}`}
-                description="Quién ve este dashboard y con qué ícono aparece en el menú."
+                title={`Editar · ${dashboard.title}`}
+                description={`Versión ${dashboard.version} · id ${dashboard.slug}`}
                 actions={
                     <Link to="/admin/dashboards" className="text-sm text-slate-600 underline-offset-2 hover:underline">
                         Volver
@@ -113,12 +115,25 @@ export function DashboardAssignmentPage() {
                     )}
                 </section>
 
+                <section>
+                    <p className="mb-2 text-sm font-medium text-slate-900">Publicación</p>
+                    <Checkbox label="Publicado" hint="Sin publicar queda como borrador, visible sólo para super administradores." checked={published} onChange={(e) => setPublished(e.target.checked)} />
+                </section>
+
+                <section className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                    Para reemplazar el archivo HTML por una versión nueva, usá{' '}
+                    <Link to={`/admin/dashboards/${id}/update`} className="underline">
+                        Actualizar archivo
+                    </Link>
+                    . La asignación y el ícono se conservan.
+                </section>
+
                 <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
                     <Button variant="secondary" onClick={() => navigate('/admin/dashboards')}>
                         Cancelar
                     </Button>
                     <Button onClick={() => void save()} loading={saving}>
-                        Guardar visibilidad
+                        Guardar cambios
                     </Button>
                 </div>
             </div>

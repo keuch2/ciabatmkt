@@ -120,7 +120,7 @@ dos cosas: decir a qué pertenece cada usuario y decidir quién ve cada dashboar
 - Eliminar: sólo si ningún dashboard está asignado a la división ni a sus grupos; si lo hay, la
   plataforma avisa cuál reasignar. Los usuarios pierden la pertenencia, nada más.
 
-**Quién ve un dashboard.** En **Administración → Dashboards → Visibilidad** (o al cargarlo) se
+**Quién ve un dashboard.** En **Administración → Dashboards → Editar** (o al cargarlo) se
 elige:
 
 - **Toda la empresa**: cualquier usuario activo.
@@ -170,4 +170,4 @@ nueva al abrirse.
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
 | "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
 | Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |
-| Un usuario no ve un dashboard publicado | No está asignado a su división ni a sus grupos, o el dashboard no tiene asignación. | Revisar Administración → Dashboards → Visibilidad y las divisiones del usuario. |
+| Un usuario no ve un dashboard publicado | No está asignado a su división ni a sus grupos, o el dashboard no tiene asignación. | Revisar Administración → Dashboards → Editar y las divisiones del usuario. |

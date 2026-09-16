@@ -53,7 +53,7 @@ export function AdminDashboardsPage() {
         <div>
             <PageHeader
                 title="Dashboards"
-                description="Publicación, visibilidad y estado de todos los dashboards. Quién ve cada uno se define en Visibilidad, o desde Divisiones."
+                description="Todos los dashboards. En Editar se define el ícono, quién lo ve y si está publicado."
                 actions={<Button onClick={() => navigate('/admin/dashboards/new')}>Cargar dashboard</Button>}
             />
 
@@ -113,7 +113,7 @@ export function AdminDashboardsPage() {
                                         </span>
                                     </td>
                                     <td className="px-3 py-2 text-xs">
-                                        <Link to={`/admin/dashboards/${d.id}/assign`} className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-100" title="Cambiar quién ve este dashboard">
+                                        <Link to={`/admin/dashboards/${d.id}/edit`} className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-100" title="Editar: ícono, quién lo ve y publicación">
                                             <DashboardIcon icon={d.icon} title={d.title} className="h-6 w-6" />
                                             <span>
                                                 {d.visible_to_all && <span className="block text-slate-700">Toda la empresa</span>}
@@ -122,7 +122,7 @@ export function AdminDashboardsPage() {
                                                     <span className="block text-slate-500">{(d.groups ?? []).map((g) => `${g.name} (${g.division_name ?? 'grupo'})`).join(', ')}</span>
                                                 )}
                                                 {!d.visible_to_all && (d.divisions ?? []).length === 0 && (d.groups ?? []).length === 0 && (
-                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Sin asignar · asignar</span>
+                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Sin asignar</span>
                                                 )}
                                             </span>
                                         </Link>
@@ -130,8 +130,8 @@ export function AdminDashboardsPage() {
                                     <td className="px-3 py-2 text-xs text-slate-500">{formatDate(d.updated_at)}</td>
                                     <td className="px-3 py-2">
                                         <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/assign`)}>
-                                                Visibilidad
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/edit`)}>
+                                                Editar
                                             </Button>
                                             <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/data`)}>
                                                 Datos

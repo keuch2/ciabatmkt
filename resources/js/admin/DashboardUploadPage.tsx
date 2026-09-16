@@ -235,7 +235,7 @@ export function DashboardUploadPage() {
                                     />
                                     {!visibleToAll && divisionIds.length === 0 && groupIds.length === 0 && (
                                         <div className="mt-3">
-                                            <Alert tone="info">Sin asignación, sólo los super administradores lo verán. Podés asignarlo después desde "Visibilidad".</Alert>
+                                            <Alert tone="info">Sin asignación, sólo los super administradores lo verán. Podés asignarlo después desde "Editar".</Alert>
                                         </div>
                                     )}
                                 </div>
@@ -245,8 +245,8 @@ export function DashboardUploadPage() {
                         {isUpdate && (
                             <p className="text-xs text-slate-500">
                                 La asignación e ícono no cambian al actualizar el archivo; se editan en{' '}
-                                <Link to={`/admin/dashboards/${id}/assign`} className="underline">
-                                    Visibilidad
+                                <Link to={`/admin/dashboards/${id}/edit`} className="underline">
+                                    Editar
                                 </Link>
                                 .
                             </p>

@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { BASE_PATH } from './basePath';
 import { AdminDashboardsPage } from '@/admin/AdminDashboardsPage';
 import { DashboardUploadPage } from '@/admin/DashboardUploadPage';
-import { DashboardAssignmentPage } from '@/admin/DashboardAssignmentPage';
+import { DashboardEditPage } from '@/admin/DashboardEditPage';
 import { DataPage } from '@/admin/DataPage';
 import { DivisionsPage } from '@/admin/DivisionsPage';
 import { DocsPage } from '@/admin/DocsPage';
@@ -48,7 +48,7 @@ export const router = createBrowserRouter(
                                 { path: 'dashboards/:id/base', element: <DashboardPage scope="base" /> },
                                 { path: 'dashboards/:id/overview', element: <OverviewPage /> },
                                 { path: 'dashboards/:id/data', element: <DataPage /> },
-                                { path: 'dashboards/:id/assign', element: <DashboardAssignmentPage /> },
+                                { path: 'dashboards/:id/edit', element: <DashboardEditPage /> },
                                 { path: 'divisions', element: <DivisionsPage /> },
                                 { path: 'users', element: <UsersPage /> },
                                 { path: 'history', element: <HistoryPage /> },
