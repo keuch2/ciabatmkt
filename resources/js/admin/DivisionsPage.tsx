@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '@/api/client';
+import { adminListDashboards, updateDashboard, type DashboardSummary } from '@/api/dashboards';
 import { createDivision, createGroup, deleteDivision, deleteGroup, listDivisions, updateDivision, updateGroup, type Division, type Group } from '@/api/divisions';
+import { DashboardIcon } from '@/ui/icons';
+import { Select } from '@/ui/Select';
 import { useRequest } from '@/app/useRequest';
 import { useMenu } from '@/menu/MenuProvider';
 import { Alert } from '@/ui/Alert';
@@ -20,6 +23,7 @@ function errorMessage(e: unknown): string {
 /** Divisiones (sectores de negocio) con sus grupos: alta, renombrado, orden y baja. */
 export function DivisionsPage() {
     const { data, error, loading, reload } = useRequest(listDivisions, []);
+    const dashboards = useRequest(adminListDashboards, []);
     const { reload: reloadMenu } = useMenu();
     const [notice, setNotice] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
@@ -33,6 +37,7 @@ export function DivisionsPage() {
             await action();
             setNotice(done);
             reload();
+            dashboards.reload();
             void reloadMenu();
         } catch (e) {
             setActionError(errorMessage(e));
@@ -59,7 +64,7 @@ export function DivisionsPage() {
 
     return (
         <div className="max-w-5xl">
-            <PageHeader title="Divisiones" description="Sectores de la empresa y sus grupos. Organizan a los usuarios y a qué dashboards acceden." />
+            <PageHeader title="Divisiones" description="Sectores de la empresa y sus grupos. Acá se define qué dashboards ve cada división o grupo; los usuarios se asignan desde Usuarios." />
 
             {notice && (
                 <div className="mb-3">
@@ -111,6 +116,15 @@ export function DivisionsPage() {
                             if (!window.confirm(`¿Eliminar el grupo «${g.name}»? Los usuarios pierden esa pertenencia.`)) return;
                             void run(() => deleteGroup(division.id, g.id), `Grupo «${g.name}» eliminado.`);
                         }}
+                        dashboards={dashboards.data ?? []}
+                        onAssignDivision={(dash, on) => {
+                            const ids = (dash.divisions ?? []).map((x) => x.id).filter((x) => x !== division.id);
+                            void run(() => updateDashboard(dash.id, { division_ids: on ? [...ids, division.id] : ids }), on ? `«${dash.title}» asignado a ${division.name}.` : `«${dash.title}» quitado de ${division.name}.`);
+                        }}
+                        onAssignGroup={(g, dash, on) => {
+                            const ids = (dash.groups ?? []).map((x) => x.id).filter((x) => x !== g.id);
+                            void run(() => updateDashboard(dash.id, { group_ids: on ? [...ids, g.id] : ids }), on ? `«${dash.title}» asignado al grupo ${g.name}.` : `«${dash.title}» quitado del grupo ${g.name}.`);
+                        }}
                     />
                 ))}
             </div>
@@ -148,8 +162,51 @@ function InlineName({ value, onSave, className = '' }: { value: string; onSave: 
     );
 }
 
+/** Lista de dashboards asignados a una división o grupo, con alta y baja. */
+function AssignedDashboards({ assigned, available, onAdd, onRemove, addLabel }: {
+    assigned: DashboardSummary[];
+    available: DashboardSummary[];
+    onAdd: (dash: DashboardSummary) => void;
+    onRemove: (dash: DashboardSummary) => void;
+    addLabel: string;
+}) {
+    return (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {assigned.map((d) => (
+                <span key={d.id} className="inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-50 py-0.5 pr-1 pl-1.5 text-xs text-slate-800">
+                    <DashboardIcon icon={d.icon} title={d.title} className="h-4 w-4 text-[8px]" />
+                    {d.title}
+                    <button type="button" onClick={() => onRemove(d)} className="ml-0.5 rounded px-1 text-slate-400 hover:bg-slate-200 hover:text-slate-800" title="Quitar" aria-label={`Quitar ${d.title}`}>
+                        ×
+                    </button>
+                </span>
+            ))}
+            {available.length > 0 ? (
+                <Select
+                    value=""
+                    aria-label={addLabel}
+                    onChange={(e) => {
+                        const dash = available.find((d) => d.id === e.target.value);
+                        if (dash) onAdd(dash);
+                    }}
+                    className="h-7 w-auto max-w-xs text-xs"
+                >
+                    <option value="">{addLabel}</option>
+                    {available.map((d) => (
+                        <option key={d.id} value={d.id}>
+                            {d.title}
+                        </option>
+                    ))}
+                </Select>
+            ) : (
+                assigned.length === 0 && <span className="text-xs text-slate-400">Sin dashboards.</span>
+            )}
+        </div>
+    );
+}
+
 function DivisionCard({
-    division, canUp, canDown, onMove, onRename, onDelete, onAddGroup, onRenameGroup, onMoveGroup, onDeleteGroup,
+    division, canUp, canDown, onMove, onRename, onDelete, onAddGroup, onRenameGroup, onMoveGroup, onDeleteGroup, dashboards, onAssignDivision, onAssignGroup,
 }: {
     division: Division;
     canUp: boolean;
@@ -161,8 +218,13 @@ function DivisionCard({
     onRenameGroup: (group: Group, name: string) => void;
     onMoveGroup: (index: number, dir: -1 | 1) => void;
     onDeleteGroup: (group: Group) => void;
+    dashboards: DashboardSummary[];
+    onAssignDivision: (dash: DashboardSummary, on: boolean) => void;
+    onAssignGroup: (group: Group, dash: DashboardSummary, on: boolean) => void;
 }) {
     const [groupName, setGroupName] = useState('');
+    const inDivision = dashboards.filter((d) => (d.divisions ?? []).some((x) => x.id === division.id));
+    const notInDivision = dashboards.filter((d) => !(d.divisions ?? []).some((x) => x.id === division.id));
 
     return (
         <section className="rounded border border-slate-200 bg-white">
@@ -187,14 +249,32 @@ function DivisionCard({
                 </div>
             </div>
 
+            <div className="border-b border-slate-100 px-3 py-2">
+                <p className="text-xs font-medium text-slate-700">Dashboards de toda la división</p>
+                <AssignedDashboards
+                    assigned={inDivision}
+                    available={notInDivision}
+                    addLabel="Asignar dashboard a la división…"
+                    onAdd={(d) => onAssignDivision(d, true)}
+                    onRemove={(d) => onAssignDivision(d, false)}
+                />
+            </div>
+
             <ul className="divide-y divide-slate-100">
                 {division.groups.map((group, gi) => (
-                    <li key={group.id} className="flex items-center justify-between gap-3 px-3 py-1.5 pl-6">
-                        <div className="min-w-0">
+                    <li key={group.id} className="flex items-start justify-between gap-3 px-3 py-1.5 pl-6">
+                        <div className="min-w-0 flex-1">
                             <InlineName value={group.name} onSave={(name) => onRenameGroup(group, name)} className="text-sm text-slate-800" />
                             <span className="ml-2 text-xs text-slate-500">
-                                {group.users_count ?? 0} usuario{group.users_count === 1 ? '' : 's'} · {group.dashboards_count ?? 0} dashboard{group.dashboards_count === 1 ? '' : 's'}
+                                {group.users_count ?? 0} usuario{group.users_count === 1 ? '' : 's'}
                             </span>
+                            <AssignedDashboards
+                                assigned={dashboards.filter((d) => (d.groups ?? []).some((x) => x.id === group.id))}
+                                available={dashboards.filter((d) => !(d.groups ?? []).some((x) => x.id === group.id) && !(d.divisions ?? []).some((x) => x.id === division.id))}
+                                addLabel="Asignar dashboard al grupo…"
+                                onAdd={(d) => onAssignGroup(group, d, true)}
+                                onRemove={(d) => onAssignGroup(group, d, false)}
+                            />
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
                             <Button variant="ghost" disabled={gi === 0} onClick={() => onMoveGroup(gi, -1)} title="Subir">

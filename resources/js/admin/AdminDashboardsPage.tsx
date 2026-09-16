@@ -5,6 +5,7 @@ import { adminListDashboards, deleteDashboard, updateDashboard, type DashboardSu
 import { useRequest } from '@/app/useRequest';
 import { useMenu } from '@/menu/MenuProvider';
 import { DashboardIcon } from '@/ui/icons';
+import { ActionsMenu } from '@/ui/ActionsMenu';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { PageHeader } from '@/ui/PageHeader';
@@ -52,7 +53,7 @@ export function AdminDashboardsPage() {
         <div>
             <PageHeader
                 title="Dashboards"
-                description="Publicación y estado de todos los dashboards."
+                description="Publicación, visibilidad y estado de todos los dashboards. Quién ve cada uno se define en Visibilidad, o desde Divisiones."
                 actions={<Button onClick={() => navigate('/admin/dashboards/new')}>Cargar dashboard</Button>}
             />
 
@@ -112,7 +113,7 @@ export function AdminDashboardsPage() {
                                         </span>
                                     </td>
                                     <td className="px-3 py-2 text-xs">
-                                        <div className="flex items-center gap-2">
+                                        <Link to={`/admin/dashboards/${d.id}/assign`} className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-100" title="Cambiar quién ve este dashboard">
                                             <DashboardIcon icon={d.icon} title={d.title} className="h-6 w-6" />
                                             <span>
                                                 {d.visible_to_all && <span className="block text-slate-700">Toda la empresa</span>}
@@ -121,42 +122,34 @@ export function AdminDashboardsPage() {
                                                     <span className="block text-slate-500">{(d.groups ?? []).map((g) => `${g.name} (${g.division_name ?? 'grupo'})`).join(', ')}</span>
                                                 )}
                                                 {!d.visible_to_all && (d.divisions ?? []).length === 0 && (d.groups ?? []).length === 0 && (
-                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Sin asignar</span>
+                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Sin asignar · asignar</span>
                                                 )}
                                             </span>
-                                        </div>
+                                        </Link>
                                     </td>
                                     <td className="px-3 py-2 text-xs text-slate-500">{formatDate(d.updated_at)}</td>
                                     <td className="px-3 py-2">
-                                        <div className="flex justify-end gap-1">
+                                        <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                                             <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/assign`)}>
                                                 Visibilidad
                                             </Button>
                                             <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/data`)}>
                                                 Datos
                                             </Button>
-                                            {d.param_count > 0 && (
-                                                <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/base`)}>
-                                                    Valores base
-                                                </Button>
-                                            )}
-                                            {d.param_count > 0 && (
-                                                <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/overview`)}>
-                                                    Escenarios
-                                                </Button>
-                                            )}
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/history?dashboard=${d.id}`)}>
-                                                Historial
-                                            </Button>
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/update`)}>
-                                                Actualizar
-                                            </Button>
-                                            <Button variant="ghost" loading={busy === d.id} onClick={() => togglePublish(d)}>
-                                                {d.is_published ? 'Despublicar' : 'Publicar'}
-                                            </Button>
-                                            <Button variant="ghost" className="text-red-700" loading={busy === d.id} onClick={() => remove(d)}>
-                                                Eliminar
-                                            </Button>
+                                            <ActionsMenu
+                                                items={[
+                                                    { label: 'Actualizar archivo', onClick: () => navigate(`/admin/dashboards/${d.id}/update`) },
+                                                    { label: 'Historial', onClick: () => navigate(`/admin/history?dashboard=${d.id}`) },
+                                                    ...(d.param_count > 0
+                                                        ? [
+                                                              { label: 'Valores base', onClick: () => navigate(`/admin/dashboards/${d.id}/base`) },
+                                                              { label: 'Escenarios', onClick: () => navigate(`/admin/dashboards/${d.id}/overview`) },
+                                                          ]
+                                                        : []),
+                                                    { label: d.is_published ? 'Despublicar' : 'Publicar', onClick: () => togglePublish(d), disabled: busy === d.id },
+                                                    { label: 'Eliminar', onClick: () => remove(d), tone: 'danger' as const, disabled: busy === d.id },
+                                                ]}
+                                            />
                                         </div>
                                     </td>
                                 </tr>
