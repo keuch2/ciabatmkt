@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '@/api/client';
 import { adminListDashboards, deleteDashboard, updateDashboard, type DashboardSummary } from '@/api/dashboards';
 import { useRequest } from '@/app/useRequest';
+import { useMenu } from '@/menu/MenuProvider';
+import { DashboardIcon } from '@/ui/icons';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { PageHeader } from '@/ui/PageHeader';
@@ -15,6 +17,7 @@ function formatDate(iso: string | null): string {
 
 export function AdminDashboardsPage() {
     const { data, error, loading, reload } = useRequest(adminListDashboards, []);
+    const { reload: reloadMenu } = useMenu();
     const location = useLocation();
     const navigate = useNavigate();
     const [notice, setNotice] = useState<string | null>((location.state as { notice?: string } | null)?.notice ?? null);
@@ -28,6 +31,7 @@ export function AdminDashboardsPage() {
             await action();
             setNotice(done);
             reload();
+            void reloadMenu();
         } catch (e) {
             setActionError(e instanceof ApiError ? e.message : 'No se pudo conectar con el servidor.');
         } finally {
@@ -75,6 +79,7 @@ export function AdminDashboardsPage() {
                                 <th className="px-3 py-2">Versión</th>
                                 <th className="px-3 py-2">Parámetros</th>
                                 <th className="px-3 py-2">Estado</th>
+                                <th className="px-3 py-2">Visibilidad</th>
                                 <th className="px-3 py-2">Actualizado</th>
                                 <th className="px-3 py-2 text-right">Acciones</th>
                             </tr>
@@ -82,7 +87,7 @@ export function AdminDashboardsPage() {
                         <tbody className="divide-y divide-slate-100">
                             {data.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                                    <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
                                         No hay dashboards cargados.
                                     </td>
                                 </tr>
@@ -106,19 +111,44 @@ export function AdminDashboardsPage() {
                                             {d.is_published ? 'Publicado' : 'Borrador'}
                                         </span>
                                     </td>
+                                    <td className="px-3 py-2 text-xs">
+                                        <div className="flex items-center gap-2">
+                                            <DashboardIcon icon={d.icon} title={d.title} className="h-6 w-6" />
+                                            <span>
+                                                {d.visible_to_all && <span className="block text-slate-700">Toda la empresa</span>}
+                                                {(d.divisions ?? []).length > 0 && <span className="block text-slate-700">{(d.divisions ?? []).map((x) => x.name).join(', ')}</span>}
+                                                {(d.groups ?? []).length > 0 && (
+                                                    <span className="block text-slate-500">{(d.groups ?? []).map((g) => `${g.name} (${g.division_name ?? 'grupo'})`).join(', ')}</span>
+                                                )}
+                                                {!d.visible_to_all && (d.divisions ?? []).length === 0 && (d.groups ?? []).length === 0 && (
+                                                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Sin asignar</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                    </td>
                                     <td className="px-3 py-2 text-xs text-slate-500">{formatDate(d.updated_at)}</td>
                                     <td className="px-3 py-2">
                                         <div className="flex justify-end gap-1">
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//base`)}>
-                                                Valores base
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/assign`)}>
+                                                Visibilidad
                                             </Button>
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//overview`)}>
-                                                Escenarios
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/data`)}>
+                                                Datos
                                             </Button>
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/history?dashboard=`)}>
+                                            {d.param_count > 0 && (
+                                                <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/base`)}>
+                                                    Valores base
+                                                </Button>
+                                            )}
+                                            {d.param_count > 0 && (
+                                                <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/overview`)}>
+                                                    Escenarios
+                                                </Button>
+                                            )}
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/history?dashboard=${d.id}`)}>
                                                 Historial
                                             </Button>
-                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards//update`)}>
+                                            <Button variant="ghost" onClick={() => navigate(`/admin/dashboards/${d.id}/update`)}>
                                                 Actualizar
                                             </Button>
                                             <Button variant="ghost" loading={busy === d.id} onClick={() => togglePublish(d)}>

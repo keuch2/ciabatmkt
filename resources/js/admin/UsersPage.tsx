@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { createUser, listUsers, updateUser, type UserPayload } from '@/api/admin';
+import { listDivisions, type Division } from '@/api/divisions';
+import { useMenu } from '@/menu/MenuProvider';
+import { AssignmentFields } from './AssignmentFields';
 import { ApiError } from '@/api/client';
 import type { User } from '@/api/types';
 import { useRequest } from '@/app/useRequest';
@@ -15,11 +18,13 @@ import { Spinner } from '@/ui/Spinner';
 
 type Draft = UserPayload;
 
-const EMPTY: Draft = { name: '', email: '', password: '', role: 'user', is_active: true };
+const EMPTY: Draft = { name: '', email: '', password: '', role: 'user', is_active: true, division_ids: [], group_ids: [] };
 
 export function UsersPage() {
     const { user: me } = useAuth();
     const { data, error, loading, reload } = useRequest(listUsers, []);
+    const divisions = useRequest(listDivisions, []);
+    const { reload: reloadMenu } = useMenu();
     const [editing, setEditing] = useState<User | 'new' | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
 
@@ -40,7 +45,20 @@ export function UsersPage() {
 
             {editing && (
                 <UserForm
-                    initial={editing === 'new' ? EMPTY : { name: editing.name, email: editing.email, password: '', role: editing.role, is_active: editing.is_active }}
+                    initial={
+                        editing === 'new'
+                            ? EMPTY
+                            : {
+                                  name: editing.name,
+                                  email: editing.email,
+                                  password: '',
+                                  role: editing.role,
+                                  is_active: editing.is_active,
+                                  division_ids: (editing.divisions ?? []).map((d) => d.id),
+                                  group_ids: (editing.groups ?? []).map((g) => g.id),
+                              }
+                    }
+                    divisions={divisions.data ?? []}
                     isNew={editing === 'new'}
                     isSelf={editing !== 'new' && editing.id === me?.id}
                     onCancel={() => setEditing(null)}
@@ -56,6 +74,7 @@ export function UsersPage() {
                         }
                         setEditing(null);
                         reload();
+                        void reloadMenu();
                     }}
                 />
             )}
@@ -68,6 +87,7 @@ export function UsersPage() {
                                 <th className="px-3 py-2">Nombre</th>
                                 <th className="px-3 py-2">Correo</th>
                                 <th className="px-3 py-2">Rol</th>
+                                <th className="px-3 py-2">Divisiones</th>
                                 <th className="px-3 py-2">Estado</th>
                                 <th className="px-3 py-2">Alta</th>
                                 <th className="px-3 py-2 text-right">Acciones</th>
@@ -82,6 +102,10 @@ export function UsersPage() {
                                     </td>
                                     <td className="px-3 py-2">{u.email}</td>
                                     <td className="px-3 py-2">{u.role === 'super_admin' ? 'Super administrador' : 'Usuario'}</td>
+                                    <td className="px-3 py-2 text-xs text-slate-600">
+                                        {(u.divisions ?? []).length === 0 ? <span className="text-slate-400">—</span> : (u.divisions ?? []).map((d) => d.name).join(', ')}
+                                        {(u.groups ?? []).length > 0 && <span className="block text-slate-400">{(u.groups ?? []).map((g) => g.name).join(', ')}</span>}
+                                    </td>
                                     <td className="px-3 py-2">
                                         <span className={`rounded px-1.5 py-0.5 text-xs ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
                                             {u.is_active ? 'Activo' : 'Inactivo'}
@@ -107,12 +131,14 @@ function UserForm({
     initial,
     isNew,
     isSelf,
+    divisions,
     onCancel,
     onSubmit,
 }: {
     initial: Draft;
     isNew: boolean;
     isSelf: boolean;
+    divisions: Division[];
     onCancel: () => void;
     onSubmit: (draft: Draft) => Promise<void>;
 }) {
@@ -176,6 +202,17 @@ function UserForm({
                 {isSelf && <span className="text-xs">(no podés desactivarte a vos mismo)</span>}
             </label>
             {errors.is_active && <p className="text-xs text-red-700">{errors.is_active}</p>}
+            <div>
+                <p className="mb-1 text-xs font-medium text-slate-700">Divisiones y grupos</p>
+                <AssignmentFields
+                    divisions={divisions}
+                    divisionIds={draft.division_ids}
+                    groupIds={draft.group_ids}
+                    mode="user"
+                    errors={{ division_ids: errors.division_ids, group_ids: errors.group_ids }}
+                    onChange={(next) => setDraft((d) => ({ ...d, division_ids: next.divisionIds, group_ids: next.groupIds }))}
+                />
+            </div>
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={onCancel}>
                     Cancelar

@@ -2,6 +2,13 @@ import { useEffect, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '@/api/client';
 import { createDashboard, previewDashboard, updateDashboard, type PreviewResult } from '@/api/dashboards';
+import { listDivisions } from '@/api/divisions';
+import { useRequest } from '@/app/useRequest';
+import { useMenu } from '@/menu/MenuProvider';
+import { Checkbox } from '@/ui/Checkbox';
+import { IconPicker } from '@/ui/IconPicker';
+import type { IconKey } from '@/ui/icons';
+import { AssignmentFields } from './AssignmentFields';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { PageHeader } from '@/ui/PageHeader';
@@ -20,6 +27,12 @@ export function DashboardUploadPage() {
     const [html, setHtml] = useState<string | null>(null);
     const [preview, setPreview] = useState<PreviewResult | null>(null);
     const [publish, setPublish] = useState(true);
+    const [icon, setIcon] = useState<IconKey | null>(null);
+    const [visibleToAll, setVisibleToAll] = useState(false);
+    const [divisionIds, setDivisionIds] = useState<string[]>([]);
+    const [groupIds, setGroupIds] = useState<string[]>([]);
+    const divisions = useRequest(listDivisions, []);
+    const { reload: reloadMenu } = useMenu();
     const [checking, setChecking] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -64,9 +77,11 @@ export function DashboardUploadPage() {
         try {
             if (isUpdate && id) {
                 const result = await updateDashboard(id, { html });
+                void reloadMenu();
                 navigate('/admin/dashboards', { state: { notice: `«${result.data.title}» actualizado a la versión ${result.data.version}.` } });
             } else {
-                const created = await createDashboard(html, publish);
+                const created = await createDashboard(html, { is_published: publish, icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds });
+                void reloadMenu();
                 navigate('/admin/dashboards', { state: { notice: `«${created.title}» ${publish ? 'publicado' : 'guardado como borrador'}.` } });
             }
         } catch (e) {
@@ -200,10 +215,41 @@ export function DashboardUploadPage() {
                         )}
 
                         {!isUpdate && (
-                            <label className="flex items-center gap-2 text-sm text-slate-700">
-                                <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} />
-                                Publicar inmediatamente (visible para los usuarios)
-                            </label>
+                            <div className="space-y-4 border-t border-slate-200 pt-4">
+                                <div>
+                                    <p className="mb-2 text-sm font-medium text-slate-900">Ícono en el menú</p>
+                                    <IconPicker value={icon} onChange={setIcon} />
+                                </div>
+                                <div>
+                                    <p className="mb-2 text-sm font-medium text-slate-900">Quién lo ve</p>
+                                    <Checkbox label="Toda la empresa" hint="Cualquier usuario activo, sin importar su división." checked={visibleToAll} onChange={(e) => setVisibleToAll(e.target.checked)} className="mb-3" />
+                                    <AssignmentFields
+                                        divisions={divisions.data ?? []}
+                                        divisionIds={divisionIds}
+                                        groupIds={groupIds}
+                                        mode="dashboard"
+                                        onChange={(next) => {
+                                            setDivisionIds(next.divisionIds);
+                                            setGroupIds(next.groupIds);
+                                        }}
+                                    />
+                                    {!visibleToAll && divisionIds.length === 0 && groupIds.length === 0 && (
+                                        <div className="mt-3">
+                                            <Alert tone="info">Sin asignación, sólo los super administradores lo verán. Podés asignarlo después desde "Visibilidad".</Alert>
+                                        </div>
+                                    )}
+                                </div>
+                                <Checkbox label="Publicar inmediatamente" hint="Si no, queda como borrador visible sólo para super administradores." checked={publish} onChange={(e) => setPublish(e.target.checked)} />
+                            </div>
+                        )}
+                        {isUpdate && (
+                            <p className="text-xs text-slate-500">
+                                La asignación e ícono no cambian al actualizar el archivo; se editan en{' '}
+                                <Link to={`/admin/dashboards/${id}/assign`} className="underline">
+                                    Visibilidad
+                                </Link>
+                                .
+                            </p>
                         )}
                     </div>
                 )}

@@ -16,9 +16,9 @@ class DashboardController extends Controller
 
     public function __construct(private readonly ParamResolver $resolver) {}
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $dashboards = Dashboard::query()->where('is_published', true)->orderBy('title')->get();
+        $dashboards = Dashboard::query()->visibleTo($request->user())->orderBy('title')->get();
 
         return DashboardSummaryResource::collection($dashboards);
     }

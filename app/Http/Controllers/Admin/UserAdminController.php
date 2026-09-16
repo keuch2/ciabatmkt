@@ -19,14 +19,16 @@ class UserAdminController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
-        return UserResource::collection(User::query()->orderBy('name')->get());
+        return UserResource::collection(User::query()->with(['divisions', 'groups'])->orderBy('name')->get());
     }
 
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $user = User::query()->create($request->validated() + ['is_active' => $request->boolean('is_active', true)]);
+        $data = $request->safe()->except(['division_ids', 'group_ids']);
+        $user = User::query()->create($data + ['is_active' => $request->boolean('is_active', true)]);
+        $user->syncMemberships((array) $request->input('division_ids', []), (array) $request->input('group_ids', []));
 
-        return (new UserResource($user))->response()->setStatusCode(201);
+        return (new UserResource($user->load(['divisions', 'groups'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateUserRequest $request, User $user): UserResource
@@ -46,8 +48,14 @@ class UserAdminController extends Controller
             }
         }
 
-        $user->fill($data)->save();
+        $user->fill(collect($data)->except(['division_ids', 'group_ids'])->all())->save();
 
-        return new UserResource($user->refresh());
+        if ($request->has('division_ids') || $request->has('group_ids')) {
+            $divisionIds = $request->has('division_ids') ? (array) $request->input('division_ids', []) : $user->divisions()->pluck('divisions.id')->all();
+            $groupIds = $request->has('group_ids') ? (array) $request->input('group_ids', []) : $user->groups()->pluck('groups.id')->all();
+            $user->syncMemberships($divisionIds, $groupIds);
+        }
+
+        return new UserResource($user->refresh()->load(['divisions', 'groups']));
     }
 }

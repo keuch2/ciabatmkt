@@ -11,6 +11,8 @@ export interface UserPayload {
     password?: string;
     role: UserRole;
     is_active: boolean;
+    division_ids: string[];
+    group_ids: string[];
 }
 
 export function listUsers(): Promise<User[]> {

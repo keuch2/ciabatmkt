@@ -8,10 +8,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 trait ResolvesVisibleDashboards
 {
-    /** Un dashboard sin publicar no existe para un usuario común. */
+    /** Un dashboard sin publicar, o no asignado al usuario, no existe para él. */
     protected function ensureVisible(Dashboard $dashboard, User $user): void
     {
-        if (! $dashboard->is_published && ! $user->isSuperAdmin()) {
+        if (! $dashboard->isVisibleTo($user)) {
             throw new NotFoundHttpException('El dashboard solicitado no existe o no está publicado.');
         }
     }

@@ -13,6 +13,6 @@ class LoginController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        return new UserResource($request->user());
+        return new UserResource($request->user()->load(['divisions', 'groups']));
     }
 }

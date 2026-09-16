@@ -32,6 +32,9 @@ class DashboardFactory extends Factory
             'html' => "<!doctype html><html><head><script type=\"application/json\" id=\"dashboard-manifest\">{$json}</script></head><body><h1>{$manifest['title']}</h1></body></html>",
             'manifest' => $manifest,
             'is_published' => true,
+            // Por defecto visible para toda la empresa: los tests que actúan como usuario común
+            // no necesitan asignaciones. Usá restricted() para probar la visibilidad por división/grupo.
+            'visible_to_all' => true,
             'created_by' => User::factory()->superAdmin(),
         ];
     }
@@ -64,6 +67,12 @@ class DashboardFactory extends Factory
                 'html' => "<!doctype html><html><head><script type=\"application/json\" id=\"dashboard-manifest\">{$json}</script></head><body></body></html>",
             ];
         });
+    }
+
+    /** Sin "toda la empresa": sólo se ve por asignación a división o grupo. */
+    public function restricted(): static
+    {
+        return $this->state(fn () => ['visible_to_all' => false]);
     }
 
     public function unpublished(): static

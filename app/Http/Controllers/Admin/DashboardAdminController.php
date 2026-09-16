@@ -20,7 +20,7 @@ class DashboardAdminController extends Controller
     public function index(): AnonymousResourceCollection
     {
         return DashboardSummaryResource::collection(
-            Dashboard::query()->with('creator')->orderBy('title')->get(),
+            Dashboard::query()->with(['creator', 'divisions', 'groups.division'])->orderBy('title')->get(),
         );
     }
 
@@ -79,8 +79,9 @@ class DashboardAdminController extends Controller
             $request->user(),
             $request->boolean('is_published', true),
         );
+        $this->applyAssignment($dashboard, $request);
 
-        return (new DashboardSummaryResource($dashboard))->response()->setStatusCode(201);
+        return (new DashboardSummaryResource($dashboard->load(['divisions', 'groups.division'])))->response()->setStatusCode(201);
     }
 
     public function update(UpdateDashboardRequest $request, Dashboard $dashboard): JsonResponse
@@ -94,11 +95,33 @@ class DashboardAdminController extends Controller
         if ($request->has('is_published')) {
             $dashboard->forceFill(['is_published' => $request->boolean('is_published')])->save();
         }
+        $this->applyAssignment($dashboard, $request);
 
         return response()->json([
-            'data' => new DashboardSummaryResource($dashboard->refresh()),
+            'data' => new DashboardSummaryResource($dashboard->refresh()->load(['divisions', 'groups.division'])),
             'diff' => $diff,
         ]);
+    }
+
+    /** Ícono, "toda la empresa" y asignación a divisiones/grupos: sólo las claves presentes en el cuerpo. */
+    private function applyAssignment(Dashboard $dashboard, \Illuminate\Foundation\Http\FormRequest $request): void
+    {
+        $fill = [];
+        if ($request->has('icon')) {
+            $fill['icon'] = $request->input('icon') ?: null;
+        }
+        if ($request->has('visible_to_all')) {
+            $fill['visible_to_all'] = $request->boolean('visible_to_all');
+        }
+        if ($fill !== []) {
+            $dashboard->forceFill($fill)->save();
+        }
+        if ($request->has('division_ids')) {
+            $dashboard->divisions()->sync((array) $request->input('division_ids', []));
+        }
+        if ($request->has('group_ids')) {
+            $dashboard->groups()->sync((array) $request->input('group_ids', []));
+        }
     }
 
     public function destroy(Dashboard $dashboard): Response

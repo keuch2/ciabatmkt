@@ -38,12 +38,23 @@ export interface ResolvedParam {
     stale: boolean;
 }
 
+export interface AssignmentPayload {
+    icon?: string | null;
+    visible_to_all?: boolean;
+    division_ids?: string[];
+    group_ids?: string[];
+}
+
 export interface DashboardSummary {
     id: string;
     slug: string;
     title: string;
     version: string;
     is_published: boolean;
+    icon: string | null;
+    visible_to_all: boolean;
+    divisions?: { id: string; name: string }[];
+    groups?: { id: string; name: string; division_id: string; division_name: string | null }[];
     param_count: number;
     created_by?: { id: string; name: string };
     created_at: string | null;
@@ -115,13 +126,13 @@ export function previewDashboard(html: string): Promise<PreviewResult> {
     return api('POST', '/api/admin/dashboards/preview', { html });
 }
 
-export function createDashboard(html: string, isPublished: boolean): Promise<DashboardSummary> {
-    return api<Wrapped<DashboardSummary>>('POST', '/api/admin/dashboards', { html, is_published: isPublished }).then((r) => r.data);
+export function createDashboard(html: string, options: { is_published: boolean } & AssignmentPayload): Promise<DashboardSummary> {
+    return api<Wrapped<DashboardSummary>>('POST', '/api/admin/dashboards', { html, ...options }).then((r) => r.data);
 }
 
 export function updateDashboard(
     id: string,
-    changes: { html?: string; is_published?: boolean },
+    changes: { html?: string; is_published?: boolean } & AssignmentPayload,
 ): Promise<{ data: DashboardSummary; diff: ManifestDiff | null }> {
     return api('PUT', `/api/admin/dashboards/${id}`, changes);
 }

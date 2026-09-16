@@ -108,26 +108,56 @@ php artisan dashboards:prune-orphans               # borra
 php artisan dashboards:prune-orphans --dashboard=ventas-sucursal
 ```
 
-## 8. Usuarios
+## 8. Divisiones y grupos
+
+**Administración → Divisiones**. Una división es un sector de negocio (Comercial, Finanzas,
+Operaciones…); dentro de cada división se crean grupos (Sucursales, Casa central…). Sirven para
+dos cosas: decir a qué pertenece cada usuario y decidir quién ve cada dashboard.
+
+- Crear una división: nombre y listo. Con «↑ ↓» se ordena el menú.
+- Crear un grupo: desde la fila de su división. El nombre es único dentro de la división.
+- Renombrar: clic sobre el nombre.
+- Eliminar: sólo si ningún dashboard está asignado a la división ni a sus grupos; si lo hay, la
+  plataforma avisa cuál reasignar. Los usuarios pierden la pertenencia, nada más.
+
+**Quién ve un dashboard.** En **Administración → Dashboards → Visibilidad** (o al cargarlo) se
+elige:
+
+- **Toda la empresa**: cualquier usuario activo.
+- **Divisiones enteras**: todos los miembros de esa división.
+- **Grupos puntuales**: sólo los miembros de ese grupo.
+- **Sin nada marcado**: sólo los super administradores. Un dashboard nuevo arranca así: hay que
+  asignarlo para que alguien lo vea.
+
+Ahí mismo se elige el **ícono** con el que aparece en el menú; sin ícono se muestran las
+iniciales del título.
+
+**El menú del usuario** muestra sus dashboards agrupados por división y grupo, más la sección
+"Toda la empresa". Con el botón «‹» del pie se contrae a una columna de íconos para dar espacio
+al dashboard; «›» lo vuelve a expandir. La elección se recuerda en ese navegador.
+
+## 9. Usuarios
 
 **Administración → Usuarios**.
 
-- **Nuevo usuario**: nombre, correo, contraseña inicial y rol. Pasale la contraseña por un canal
-  seguro; el usuario puede cambiarla con "Olvidé mi contraseña" desde la pantalla de acceso (llega
-  un correo con el enlace).
+- **Nuevo usuario**: nombre, correo, contraseña inicial, rol y **divisiones y grupos**. Un
+  usuario puede estar en varias divisiones y en grupos de cualquiera de ellas; un grupo sólo se
+  puede marcar si su división está marcada. Pasale la contraseña por un canal seguro; el usuario
+  puede cambiarla con "Olvidé mi contraseña" desde la pantalla de acceso (llega un correo con el
+  enlace).
 - **Editar**: cambiar nombre, correo, rol, contraseña o estado.
 - Los usuarios **no se eliminan**: se desactivan. Un usuario inactivo no puede iniciar sesión y, si
   estaba conectado, pierde la sesión en su próxima acción. Sus valores y su historial se conservan.
 - No podés desactivarte ni quitarte el rol de super administrador a vos mismo.
 
-## 9. Ampliar la lista de CDN
+## 10. Ampliar la lista de CDN
 
 Los hosts permitidos para scripts, estilos y `fetch` de los dashboards se configuran en el
 servidor, en la variable `DASHBOARD_CDN_ALLOWLIST` del archivo `.env` (separados por coma).
 Después de cambiarla: `php artisan config:clear`. Los dashboards ya publicados toman la lista
 nueva al abrirse.
 
-## 10. Problemas frecuentes
+## 11. Problemas frecuentes
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
@@ -140,3 +170,4 @@ nueva al abrirse.
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
 | "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
 | Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |
+| Un usuario no ve un dashboard publicado | No está asignado a su división ni a sus grupos, o el dashboard no tiene asignación. | Revisar Administración → Dashboards → Visibilidad y las divisiones del usuario. |

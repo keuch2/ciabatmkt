@@ -2,12 +2,15 @@
 
 use App\Http\Controllers\Admin\AdminHistoryController;
 use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\DivisionAdminController;
 use App\Http\Controllers\Admin\DocsController;
+use App\Http\Controllers\Admin\GroupAdminController;
 use App\Http\Controllers\Admin\OverviewController;
 use App\Http\Controllers\Admin\RecordAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ParamValueController;
 use App\Http\Controllers\RecordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -29,6 +32,7 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
+    Route::get('menu', MenuController::class);
     Route::get('dashboards', [DashboardController::class, 'index']);
     Route::get('dashboards/{dashboard}', [DashboardController::class, 'show']);
     Route::put('dashboards/{dashboard}/params/{paramId}', [ParamValueController::class, 'update']);
@@ -61,6 +65,14 @@ Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->g
 
     Route::get('docs', [DocsController::class, 'index']);
     Route::get('docs/dashboard-referencia.html', [DocsController::class, 'referenceDashboard']);
+
+    Route::get('divisions', [DivisionAdminController::class, 'index']);
+    Route::post('divisions', [DivisionAdminController::class, 'store']);
+    Route::put('divisions/{division}', [DivisionAdminController::class, 'update']);
+    Route::delete('divisions/{division}', [DivisionAdminController::class, 'destroy']);
+    Route::post('divisions/{division}/groups', [GroupAdminController::class, 'store']);
+    Route::put('divisions/{division}/groups/{group}', [GroupAdminController::class, 'update'])->scopeBindings();
+    Route::delete('divisions/{division}/groups/{group}', [GroupAdminController::class, 'destroy'])->scopeBindings();
 
     Route::get('users', [UserAdminController::class, 'index']);
     Route::post('users', [UserAdminController::class, 'store']);

@@ -17,6 +17,8 @@ class UserResource extends JsonResource
             'role' => $this->role->value,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),
+            'divisions' => $this->whenLoaded('divisions', fn () => $this->divisions->map(fn ($d) => ['id' => $d->id, 'name' => $d->name])->values()),
+            'groups' => $this->whenLoaded('groups', fn () => $this->groups->map(fn ($g) => ['id' => $g->id, 'name' => $g->name, 'division_id' => $g->division_id])->values()),
         ];
     }
 }
