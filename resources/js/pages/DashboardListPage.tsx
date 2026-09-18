@@ -33,7 +33,7 @@ export function DashboardListPage() {
 
     return (
         <div>
-            <PageHeader title="Dashboards" description="Los dashboards disponibles para tu usuario." />
+            <PageHeader title={`Bienvenido${user?.name ? `, ${user.name}` : ''}`} />
 
             {loading && <Spinner />}
             {error && <Alert tone="error">{error}</Alert>}

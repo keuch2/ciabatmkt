@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useMenu } from '@/menu/MenuProvider';
 import { DashboardIcon, Icon, initials, type UiIconKey } from '@/ui/icons';
 import { Spinner } from '@/ui/Spinner';
+import logo from '@/assets/logociabay.png';
 
 interface Props {
     collapsed: boolean;
@@ -38,6 +39,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         }`;
 
     const sectionClass = `mt-3 mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 ${collapsed ? 'hidden' : ''}`;
+    // Divisiones: etiqueta con fondo verde institucional.
+    const divisionClass = `mt-3 mb-1 inline-block rounded-sm bg-[#1a9e3f] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white ${collapsed ? 'hidden' : ''}`;
     const divider = collapsed ? <div className="my-2 border-t border-slate-200" aria-hidden="true" /> : null;
 
     const dashboardLink = (d: MenuDashboard, context: string) => (
@@ -58,14 +61,14 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         <aside className={`flex min-h-screen flex-col border-r border-slate-200 bg-slate-50 ${collapsed ? 'w-14' : 'w-60'}`}>
             <div className={`border-b border-slate-200 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'}`}>
                 {collapsed ? (
-                    <div className="flex h-8 items-center justify-center rounded bg-slate-800 text-xs font-bold text-white" title={`Ciabay Dashboards · ${user?.name ?? ''}`}>
+                    <div className="flex h-8 items-center justify-center rounded bg-slate-800 text-xs font-bold text-white" title={`Ciabay · ${user?.name ?? ''}`}>
                         {initials(user?.name ?? 'C D')}
                     </div>
                 ) : (
                     <>
-                        <p className="text-sm font-semibold text-slate-900">Ciabay Dashboards</p>
-                        <p className="truncate text-xs text-slate-500" title={user?.email}>
-                            {user?.name}
+                        <img src={logo} alt="Ciabay" className="h-9 w-auto" />
+                        <p className="mt-2 truncate text-xs text-slate-600" title={user?.email}>
+                            Bienvenido, <span className="font-medium text-slate-900">{user?.name}</span>
                         </p>
                     </>
                 )}
@@ -88,7 +91,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 
                 {menu?.divisions.map((division) => (
                     <div key={division.id}>
-                        <p className={sectionClass}>{division.name}</p>
+                        <p className={divisionClass}>{division.name}</p>
                         {divider}
                         {division.dashboards.map((d) => dashboardLink(d, division.name))}
                         {division.groups.map((group) => (
