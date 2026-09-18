@@ -65,12 +65,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                         {initials(user?.name ?? 'C D')}
                     </div>
                 ) : (
-                    <>
-                        <img src={logo} alt="Ciabay" className="h-9 w-auto" />
-                        <p className="mt-2 truncate text-xs text-slate-600" title={user?.email}>
-                            Bienvenido, <span className="font-medium text-slate-900">{user?.name}</span>
-                        </p>
-                    </>
+                    <img src={logo} alt="Ciabay" className="h-9 w-auto" title={user?.name} />
                 )}
             </div>
 
