@@ -40,7 +40,18 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 
     const sectionClass = `mt-3 mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 ${collapsed ? 'hidden' : ''}`;
     // Divisiones: etiqueta con fondo verde institucional.
-    const divisionClass = `mt-3 mb-1 inline-block rounded-sm bg-[#1a9e3f] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white ${collapsed ? 'hidden' : ''}`;
+    const divisionClass = 'mt-3 mb-1 inline-block rounded-sm bg-[#1a9e3f] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white';
+    // Contraído: la división es un cuadro verde con ícono y el nombre en el tooltip.
+    const divisionHeader = (name: string) =>
+        collapsed ? (
+            <div className="mt-3 mb-1 flex justify-center" title={name} aria-label={name}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#1a9e3f] text-white">
+                    <Icon name="layers" className="h-3.5 w-3.5" />
+                </span>
+            </div>
+        ) : (
+            <p className={divisionClass}>{name}</p>
+        );
     const divider = collapsed ? <div className="my-2 border-t border-slate-200" aria-hidden="true" /> : null;
 
     const dashboardLink = (d: MenuDashboard, context: string) => (
@@ -86,8 +97,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 
                 {menu?.divisions.map((division) => (
                     <div key={division.id}>
-                        <p className={divisionClass}>{division.name}</p>
-                        {divider}
+                        {divisionHeader(division.name)}
                         {division.dashboards.map((d) => dashboardLink(d, division.name))}
                         {division.groups.map((group) => (
                             <div key={group.id} className={collapsed ? '' : 'ml-2 border-l border-slate-200 pl-1.5'}>
