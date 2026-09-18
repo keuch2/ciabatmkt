@@ -12,10 +12,11 @@ function Cards({ dashboards }: { dashboards: MenuDashboard[] }) {
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {dashboards.map((d) => (
                 <li key={d.id}>
-                    <Link to={`/dashboards/${d.id}`} className="flex items-center gap-3 rounded border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-slate-400">
+                    <Link to={`/dashboards/${d.id}`} className="flex h-full items-center gap-3 rounded border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-slate-400">
                         <DashboardIcon icon={d.icon} title={d.title} className="h-9 w-9 text-sm" />
                         <span className="min-w-0">
                             <span className="block truncate font-medium text-slate-900">{d.title}</span>
+                            {d.description && <span className="mt-0.5 line-clamp-2 block text-xs text-slate-500">{d.description}</span>}
                             {!d.is_published && <span className="text-xs text-amber-700">borrador</span>}
                         </span>
                     </Link>

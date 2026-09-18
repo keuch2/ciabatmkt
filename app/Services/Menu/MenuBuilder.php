@@ -22,7 +22,7 @@ class MenuBuilder
         $dashboards = Dashboard::query()->visibleTo($user)
             ->with(['divisions:divisions.id', 'groups:groups.id,division_id'])
             ->orderBy('title')
-            ->get(['dashboards.id', 'slug', 'title', 'icon', 'is_published', 'visible_to_all']);
+            ->get(['dashboards.id', 'slug', 'title', 'description', 'icon', 'is_published', 'visible_to_all']);
 
         $divisions = $user->isSuperAdmin()
             ? Division::query()->with('groups')->orderBy('sort_order')->orderBy('name')->get()
@@ -67,7 +67,7 @@ class MenuBuilder
     private function items(Collection $dashboards): array
     {
         return $dashboards->map(fn (Dashboard $d) => [
-            'id' => $d->id, 'slug' => $d->slug, 'title' => $d->title, 'icon' => $d->icon, 'is_published' => (bool) $d->is_published,
+            'id' => $d->id, 'slug' => $d->slug, 'title' => $d->title, 'description' => $d->description, 'icon' => $d->icon, 'is_published' => (bool) $d->is_published,
         ])->values()->all();
     }
 }

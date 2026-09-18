@@ -19,6 +19,7 @@ class Dashboard extends Model
     protected $fillable = [
         'slug',
         'title',
+        'description',
         'version',
         'html',
         'manifest',

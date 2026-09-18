@@ -1,4 +1,5 @@
 import type { ParamScalar } from '@/api/dashboards';
+import { installCapture } from './captureShim';
 
 export interface Viewer {
     id: string;
@@ -14,6 +15,7 @@ export interface Viewer {
  * - `Dashboard.data`: registros compartidos por colección, persistidos por la plataforma.
  * - `Dashboard.user`: quién está viendo el dashboard.
  * - `Dashboard.clipboard.write`: portapapeles a través del contenedor.
+ * - `Dashboard.capture` / `window.html2canvas`: captura de un elemento a canvas, compatible con el sandbox.
  * - `Dashboard.setHeight` / `ready` / `reportError`.
  *
  * Los parámetros iniciales y el usuario van embebidos para estar disponibles de forma síncrona.
@@ -23,7 +25,9 @@ export function buildPreamble(initialParams: Record<string, ParamScalar>, viewer
     const json = JSON.stringify(initialParams).replace(/</g, '\\u003c');
     const user = JSON.stringify(viewer).replace(/</g, '\\u003c');
 
-    return `(function () {
+    // La captura va como función serializada: corre dentro del iframe antes que cualquier script.
+    return `(${installCapture.toString()})();
+(function () {
   var params = ${json};
   var listeners = [];
   var explicitHeight = false;
@@ -141,6 +145,8 @@ export function buildPreamble(initialParams: Record<string, ParamScalar>, viewer
     params: params,
     user: ${user},
     data: data,
+    // Elemento → canvas sin iframes (html2canvas no funciona en el sandbox). window.html2canvas apunta a lo mismo.
+    capture: window.__ciabayCapture,
     clipboard: {
       write: function (value) {
         var message = { type: 'clipboard:write' };

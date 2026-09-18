@@ -107,6 +107,12 @@ class DashboardAdminController extends Controller
     private function applyAssignment(Dashboard $dashboard, \Illuminate\Foundation\Http\FormRequest $request): void
     {
         $fill = [];
+        if ($request->filled('title')) {
+            $fill['title'] = trim((string) $request->input('title'));
+        }
+        if ($request->has('description')) {
+            $fill['description'] = trim((string) $request->input('description')) ?: null;
+        }
         if ($request->has('icon')) {
             $fill['icon'] = $request->input('icon') ?: null;
         }

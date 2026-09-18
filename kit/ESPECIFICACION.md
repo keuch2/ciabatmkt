@@ -190,6 +190,26 @@ Reglas:
 `{ id, name, role }` del usuario que está viendo el dashboard. `role` es `"super_admin"` o
 `"user"`. Sirve para ocultar acciones administrativas, por ejemplo restaurar un respaldo.
 
+### `Dashboard.capture(elemento, opciones)` y `html2canvas`
+
+Convierte un elemento del dashboard en un `<canvas>`, para exportar a imagen o a PDF:
+
+```js
+const canvas = await Dashboard.capture(document.getElementById('reporte'), { scale: 2, backgroundColor: '#ffffff' });
+const png = canvas.toDataURL('image/png');          // imagen
+pdf.addImage(png, 'PNG', 0, 0, anchoMm, altoMm);    // o a un PDF con jsPDF
+```
+
+La librería **html2canvas no puede funcionar dentro del iframe aislado** (necesita un iframe hijo
+del mismo origen y el sandbox lo impide). Por eso la plataforma define `window.html2canvas` con
+una implementación propia y compatible: `html2canvas(elemento, { scale, backgroundColor, width,
+height })` devuelve una promesa con el canvas, igual que la original. Un dashboard que ya usa
+html2canvas funciona sin cambios, aunque cargue el script del CDN: esa asignación se ignora.
+
+Detalles: captura estilos computados, pseudo-elementos, valores de formularios, canvas e imágenes
+`data:` o de los CDN autorizados, y embebe las fuentes web latinas. El elemento debe estar visible
+(con tamaño) al capturarlo. En Safari el canvas resultante puede quedar bloqueado para exportar.
+
 ### `Dashboard.clipboard.write(valor)`
 
 Copia un texto o un `Blob` (por ejemplo una imagen PNG) al portapapeles **a través de la

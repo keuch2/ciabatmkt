@@ -5,6 +5,7 @@ export interface MenuDashboard {
     id: string;
     slug: string;
     title: string;
+    description: string | null;
     icon: string | null;
     is_published: boolean;
 }

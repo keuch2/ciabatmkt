@@ -99,6 +99,7 @@ export function AdminDashboardsPage() {
                                         <Link to={`/dashboards/${d.id}`} className="hover:underline">
                                             {d.title}
                                         </Link>
+                                        {d.description && <span className="block max-w-xs truncate text-xs font-normal text-slate-500">{d.description}</span>}
                                     </td>
                                     <td className="px-3 py-2 font-mono text-xs text-slate-600">{d.slug}</td>
                                     <td className="px-3 py-2">{d.version}</td>

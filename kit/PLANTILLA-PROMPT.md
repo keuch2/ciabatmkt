@@ -73,6 +73,10 @@ Todas las operaciones de datos devuelven promesas.
   usuarios cambian algo (`reason: 'sync'`, llega cada ~10 s) o hubo un conflicto de edición
   (`reason: 'conflict'`). Actualizá el estado en memoria y volvé a dibujar.
 - `Dashboard.user` → `{ id, name, role }` del usuario actual.
+- `Dashboard.capture(elemento, { scale, backgroundColor })` → promesa con un `<canvas>` del
+  elemento, para exportar a imagen o PDF (con jsPDF desde un CDN autorizado). `html2canvas` no
+  funciona dentro del iframe aislado: la plataforma lo reemplaza por esta misma función, así que
+  `html2canvas(elemento, opciones)` también sirve. El elemento debe estar visible al capturarlo.
 - `Dashboard.clipboard.write(textoOBlob)` → segundo intento para copiar al portapapeles si
   `navigator.clipboard` falla dentro del iframe.
 - `Dashboard.setHeight()` → sin argumento, mide el contenido e informa la altura. Llamala al

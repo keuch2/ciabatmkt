@@ -76,8 +76,12 @@ class DashboardPublisher
 
         $diff = $this->diff->compare($dashboard->manifest, $manifest);
 
+        // Si el administrador renombró el dashboard (su título ya no coincide con el del manifiesto
+        // vigente), se conserva ese nombre; si no, se toma el del archivo nuevo.
+        $renamed = $dashboard->title !== ($dashboard->manifest['title'] ?? null);
+
         $dashboard->fill([
-            'title' => $manifest['title'],
+            'title' => $renamed ? $dashboard->title : $manifest['title'],
             'version' => $manifest['version'],
             'html' => $html,
             'manifest' => $manifest,

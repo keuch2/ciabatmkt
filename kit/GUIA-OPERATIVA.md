@@ -170,4 +170,5 @@ nueva al abrirse.
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
 | "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
 | Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |
+| "Exportar PDF" o "Copiar imagen" fallaban | El dashboard usa html2canvas, que no funciona en el iframe aislado. | Resuelto por la plataforma: reemplaza html2canvas por una captura compatible. Si persiste, recargar la página. |
 | Un usuario no ve un dashboard publicado | No está asignado a su división ni a sus grupos, o el dashboard no tiene asignación. | Revisar Administración → Dashboards → Editar y las divisiones del usuario. |

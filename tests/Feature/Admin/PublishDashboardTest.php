@@ -127,7 +127,7 @@ class PublishDashboardTest extends TestCase
 
     public function test_update_replaces_html_and_returns_diff(): void
     {
-        $dashboard = Dashboard::factory()->create(['slug' => 'demo-completo', 'manifest' => $this->fullManifest(), 'version' => '1.0.0']);
+        $dashboard = Dashboard::factory()->create(['slug' => 'demo-completo', 'title' => 'Demo completo', 'manifest' => $this->fullManifest(), 'version' => '1.0.0']);
         $manifest = $this->fullManifest(['version' => '2.0.0', 'title' => 'Demo v2']);
         $manifest['params'][] = ['id' => 'extra', 'label' => 'Extra', 'type' => 'boolean', 'default' => false];
 

@@ -8,6 +8,8 @@ import { useMenu } from '@/menu/MenuProvider';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
 import { Checkbox } from '@/ui/Checkbox';
+import { Field } from '@/ui/Field';
+import { Input } from '@/ui/Input';
 import { IconPicker } from '@/ui/IconPicker';
 import { isIconKey, type IconKey } from '@/ui/icons';
 import { PageHeader } from '@/ui/PageHeader';
@@ -23,6 +25,8 @@ export function DashboardEditPage() {
     const divisions = useRequest(listDivisions, []);
     const dashboard = dashboards.data?.find((d) => d.id === id) ?? null;
 
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [icon, setIcon] = useState<IconKey | null>(null);
     const [visibleToAll, setVisibleToAll] = useState(false);
     const [published, setPublished] = useState(true);
@@ -34,6 +38,8 @@ export function DashboardEditPage() {
 
     useEffect(() => {
         if (!dashboard) return;
+        setTitle(dashboard.title);
+        setDescription(dashboard.description ?? '');
         setIcon(isIconKey(dashboard.icon) ? dashboard.icon : null);
         setVisibleToAll(dashboard.visible_to_all);
         setPublished(dashboard.is_published);
@@ -46,7 +52,7 @@ export function DashboardEditPage() {
         setErrors({});
         setMessage(null);
         try {
-            const result = await updateDashboard(id, { icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds, is_published: published });
+            const result = await updateDashboard(id, { title: title.trim(), description: description.trim() || null, icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds, is_published: published });
             void reloadMenu();
             navigate('/admin/dashboards', { state: { notice: `«${result.data.title}» guardado.` } });
         } catch (e) {
@@ -81,6 +87,22 @@ export function DashboardEditPage() {
 
             <div className="space-y-5 rounded border border-slate-200 bg-white p-4">
                 {message && <Alert tone="error">{message}</Alert>}
+
+                <section className="space-y-3">
+                    <Field label="Nombre" htmlFor="d-title" error={errors.title} hint="Es el que ven los usuarios en el menú y en el inicio. Se conserva aunque subas una versión nueva del archivo.">
+                        <Input id="d-title" value={title} maxLength={150} invalid={!!errors.title} onChange={(e) => setTitle(e.target.value)} />
+                    </Field>
+                    <Field label="Descripción" htmlFor="d-description" error={errors.description} hint={`Opcional. Aparece en la tarjeta del inicio y en la cabecera del dashboard. ${description.length}/500`}>
+                        <textarea
+                            id="d-description"
+                            value={description}
+                            maxLength={500}
+                            rows={3}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        />
+                    </Field>
+                </section>
 
                 <section>
                     <p className="mb-2 text-sm font-medium text-slate-900">Ícono en el menú</p>
@@ -132,7 +154,7 @@ export function DashboardEditPage() {
                     <Button variant="secondary" onClick={() => navigate('/admin/dashboards')}>
                         Cancelar
                     </Button>
-                    <Button onClick={() => void save()} loading={saving}>
+                    <Button onClick={() => void save()} loading={saving} disabled={!title.trim()}>
                         Guardar cambios
                     </Button>
                 </div>

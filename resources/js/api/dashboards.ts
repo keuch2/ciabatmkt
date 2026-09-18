@@ -39,6 +39,8 @@ export interface ResolvedParam {
 }
 
 export interface AssignmentPayload {
+    title?: string;
+    description?: string | null;
     icon?: string | null;
     visible_to_all?: boolean;
     division_ids?: string[];
@@ -49,6 +51,7 @@ export interface DashboardSummary {
     id: string;
     slug: string;
     title: string;
+    description: string | null;
     version: string;
     is_published: boolean;
     icon: string | null;
@@ -72,6 +75,7 @@ export interface DashboardDetail {
     id: string;
     slug: string;
     title: string;
+    description: string | null;
     version: string;
     is_published: boolean;
     manifest: Manifest;

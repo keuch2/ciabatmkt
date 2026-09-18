@@ -15,6 +15,7 @@ class StoreDashboardRequest extends FormRequest
         return [
             'html' => ['required', 'string', "max:{$max}"],
             'is_published' => ['sometimes', 'boolean'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:500'],
             'icon' => ['sometimes', 'nullable', 'string', Rule::in(DashboardIcons::KEYS)],
             'visible_to_all' => ['sometimes', 'boolean'],
             'division_ids' => ['sometimes', 'array'],
@@ -33,6 +34,7 @@ class StoreDashboardRequest extends FormRequest
             'html.string' => 'El contenido del dashboard debe ser texto HTML.',
             'html.max' => "El HTML supera el tamaño máximo permitido ({$kb} KB).",
             'is_published.boolean' => 'El campo is_published debe ser verdadero o falso.',
+            'description.max' => 'La descripción no puede superar 500 caracteres.',
             'icon.in' => 'El ícono elegido no está en el catálogo.',
             'visible_to_all.boolean' => 'El campo visible_to_all debe ser verdadero o falso.',
             'division_ids.*.exists' => 'Una de las divisiones elegidas no existe.',

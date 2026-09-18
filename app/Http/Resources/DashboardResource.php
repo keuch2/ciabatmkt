@@ -25,6 +25,7 @@ class DashboardResource extends JsonResource
             'id' => $this->id,
             'slug' => $this->slug,
             'title' => $this->title,
+            'description' => $this->description,
             'version' => $this->version,
             'is_published' => $this->is_published,
             'manifest' => $this->manifest,

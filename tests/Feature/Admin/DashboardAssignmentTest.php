@@ -64,6 +64,31 @@ class DashboardAssignmentTest extends TestCase
             ->assertUnprocessable()->assertJsonPath('errors.icon.0', 'El ícono elegido no está en el catálogo.');
     }
 
+    public function test_admin_can_rename_and_describe_a_dashboard_and_the_name_survives_a_new_file(): void
+    {
+        $dashboard = Dashboard::factory()->restricted()->create(['slug' => 'demo-completo', 'title' => 'Demo completo', 'manifest' => $this->fullManifest()]);
+
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['title' => '  Ventas del mes  ', 'description' => 'Cumplimiento por sucursal.'])
+            ->assertOk()->assertJsonPath('data.title', 'Ventas del mes')->assertJsonPath('data.description', 'Cumplimiento por sucursal.');
+
+        // Subir una versión nueva no pisa el nombre elegido por el administrador.
+        $html = $this->htmlWithManifest($this->fullManifest(['version' => '2.0.0', 'title' => 'Título del archivo']));
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['html' => $html])
+            ->assertOk()->assertJsonPath('data.title', 'Ventas del mes')->assertJsonPath('data.version', '2.0.0')->assertJsonPath('data.description', 'Cumplimiento por sucursal.');
+
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['description' => ''])
+            ->assertOk()->assertJsonPath('data.description', null);
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['title' => ''])
+            ->assertUnprocessable()->assertJsonPath('errors.title.0', 'El nombre del dashboard no puede quedar vacío.');
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['description' => str_repeat('x', 501)])
+            ->assertUnprocessable()->assertJsonPath('errors.description.0', 'La descripción no puede superar 500 caracteres.');
+
+        $dashboard->forceFill(['visible_to_all' => true, 'description' => 'Visible'])->save();
+        $user = User::factory()->create();
+        $this->actingAs($user)->getJson('/api/menu')->assertJsonPath('data.company.0.description', 'Visible');
+        $this->actingAs($user)->getJson("/api/dashboards/{$dashboard->id}")->assertJsonPath('data.description', 'Visible');
+    }
+
     public function test_admin_index_includes_assignment(): void
     {
         $dashboard = Dashboard::factory()->restricted()->create();

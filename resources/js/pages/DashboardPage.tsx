@@ -57,7 +57,7 @@ function LoadedDashboard({ data, scope }: { data: Detail; scope: ParamScope }) {
         <div className="flex h-full flex-col">
             <PageHeader
                 title={data.title}
-                description={`Versión ${data.version}${scope === 'base' ? ' · edición de valores base' : ''}${!data.is_published ? ' · borrador' : ''}`}
+                description={`${data.description ? `${data.description} · ` : ''}Versión ${data.version}${scope === 'base' ? ' · edición de valores base' : ''}${!data.is_published ? ' · borrador' : ''}`}
                 actions={
                     <>
                         <Link to={scope === 'base' ? '/admin/dashboards' : '/'} className="text-sm text-slate-600 underline-offset-2 hover:underline">
