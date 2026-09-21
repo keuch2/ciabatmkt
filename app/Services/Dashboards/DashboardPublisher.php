@@ -5,6 +5,7 @@ namespace App\Services\Dashboards;
 use App\Exceptions\DashboardValidationException;
 use App\Models\Dashboard;
 use App\Models\User;
+use App\Services\Manifest\CollectionUsageChecker;
 use App\Services\Manifest\HtmlSecurityScanner;
 use App\Services\Manifest\ManifestDiff;
 use App\Services\Manifest\ManifestExtractor;
@@ -12,7 +13,7 @@ use App\Services\Manifest\ManifestProblem;
 use App\Services\Manifest\ManifestValidator;
 
 /**
- * Orquesta las diez reglas del validador de carga y persiste el dashboard.
+ * Orquesta las reglas del validador de carga y persiste el dashboard.
  */
 class DashboardPublisher
 {
@@ -21,6 +22,7 @@ class DashboardPublisher
         private readonly ManifestValidator $validator,
         private readonly HtmlSecurityScanner $scanner,
         private readonly ManifestDiff $diff,
+        private readonly CollectionUsageChecker $collections,
     ) {}
 
     /** Corre las diez reglas sin persistir nada. */
@@ -34,6 +36,7 @@ class DashboardPublisher
         $problems = [
             ...$this->validator->validate($extracted['manifest']),
             ...$this->scanner->scan($html),
+            ...$this->collections->check($html, $extracted['manifest']),
         ];
 
         return new DashboardAnalysis($extracted['manifest'], $problems);

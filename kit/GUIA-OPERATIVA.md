@@ -168,6 +168,7 @@ nueva al abrirse.
 | El iframe queda con un aviso de que no llamó `ready()` | El dashboard no llama `Dashboard.ready()` o tiene un error antes. | Ver los errores mostrados sobre el iframe; agregar la llamada. |
 | El iframe queda muy alto o muy bajo | El dashboard mide con `documentElement.scrollHeight` o fija `100vh`. | Usar `Dashboard.setHeight()` sin argumento y quitar alturas de viewport. |
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
+| Una sección del dashboard "no guarda" y el resto sí | El código usa una colección que no está en `collections` del manifiesto (típico al agregar una función nueva). | Desde ahora el validador lo rechaza al publicar (regla 11) y, si ocurre, el motivo aparece arriba del dashboard. Agregar la colección al manifiesto y actualizar. |
 | "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
 | Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |
 | "Exportar PDF" o "Copiar imagen" fallaban | El dashboard usa html2canvas, que no funciona en el iframe aislado. | Resuelto por la plataforma: reemplaza html2canvas por una captura compatible. Si persiste, recargar la página. |

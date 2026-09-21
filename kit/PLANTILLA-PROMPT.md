@@ -52,6 +52,13 @@ Dentro de `<head>` va exactamente un bloque que declara las colecciones:
 `label`: texto para la administración. `maxRecords` (opcional, hasta 5000) y `maxBytes`
 (opcional, hasta 262144) son topes por colección y por registro.
 
+**Regla de oro: cada colección que el código use debe estar declarada acá.** Si el código llama a
+`Dashboard.data.put('actividades', …)` y `actividades` no figura en `collections`, la plataforma
+rechaza el archivo al publicarlo (y si llegara a publicarse, rechazaría cada escritura). Cuando
+agregues una sección nueva al dashboard que guarda datos, agregá su colección al manifiesto en el
+mismo paso. No declares `maxBytes` salvo que haga falta: el valor por defecto (256 KB) evita que un
+registro legítimo sea rechazado por quedarse corto.
+
 ## 3. API de datos
 
 La plataforma inyecta `window.Dashboard` **antes** de que corra cualquier script del archivo.
@@ -130,7 +137,34 @@ Dashboard.data.onChange(ev => {
 boot();
 ```
 
-## 4. Requisitos técnicos del entorno aislado
+## 4. Errores que rompen el guardado (evitalos)
+
+1. **Colección usada pero no declarada.** Es el error más común al agregar funciones a un dashboard
+   existente. Definí todos los nombres de colección como constantes en un solo lugar
+   (`const COL_X = 'x'`) y comprobá que cada uno esté en `collections` del manifiesto.
+2. **Tapar el motivo del error.** Todo `catch` de una operación de datos debe mostrar
+   `error.message`: la plataforma devuelve mensajes claros en español (colección no declarada,
+   registro demasiado grande, colección llena, sin permiso). Nunca muestres sólo "No se pudo
+   guardar": mostrá `'No se pudo guardar: ' + error.message`.
+3. **Ids de registro inválidos.** Sólo letras, números, `-`, `_`, `.`, `:`; hasta 100 caracteres;
+   sin espacios ni acentos. Generalos con un prefijo y un sufijo único
+   (`'act-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)`), nunca desde un
+   texto que escribe el usuario.
+4. **Registros que no son objetos.** `data` debe ser un objeto o un arreglo JSON, no un texto ni
+   un número suelto. Sin funciones, `undefined`, fechas `Date` ni referencias circulares.
+5. **Sembrar con `put`.** Los datos iniciales van con `Dashboard.data.seed(coleccion, [...])`,
+   que sólo actúa si la colección está vacía. Un `put` incondicional al arrancar pisa lo que
+   cargaron los usuarios.
+6. **Usar los datos antes de cargarlos.** Esperá (`await`) a `list`/`seed` de todas las
+   colecciones antes del primer dibujo y de llamar a `Dashboard.ready()`.
+7. **Ignorar los conflictos.** Si `put` falla con `error.code === 'conflict'`, otro usuario
+   cambió ese registro: tomá `error.record` como versión vigente, redibujá y avisá. No reintentes
+   en bucle.
+8. **Guardar todo en un solo registro gigante.** Un registro por entidad. Un registro único con
+   toda la aplicación adentro hace que dos usuarios se pisen y choca con el tope de tamaño.
+9. **`localStorage`, `sessionStorage` o cookies** como respaldo: el archivo se rechaza.
+
+## 5. Requisitos técnicos del entorno aislado
 
 El archivo se rechaza al publicarlo si incumple alguno:
 
@@ -149,8 +183,15 @@ El archivo se rechaza al publicarlo si incumple alguno:
 
 ## Entrega
 
-El archivo completo en un solo bloque de código, y debajo la lista de colecciones declaradas con
-la forma de cada registro. Antes de entregar, verificá las reglas de arriba una por una.
+El archivo completo en un solo bloque de código, y debajo:
+
+1. Una tabla **colección → dónde se usa en el código → forma del registro**. Armala buscando en
+   tu propio código todas las llamadas a `Dashboard.data.*`; cada colección de esa búsqueda debe
+   aparecer en el manifiesto, y viceversa.
+2. La confirmación, punto por punto, de la lista de errores de la sección 4.
+
+Si estás modificando un dashboard existente, conservá el mismo `id` del manifiesto, subí la
+`version`, y no renombres ni elimines colecciones que ya tienen datos.
 
 ---FIN---
 

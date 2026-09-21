@@ -79,7 +79,10 @@ Reglas de forma:
 | `maxRecords` | Opcional. Tope de registros; por defecto y como máximo 5000. |
 | `maxBytes` | Opcional. Tope por registro en bytes de JSON; por defecto y como máximo 262144 (256 KB). |
 
-Escribir en una colección que el manifiesto no declara se rechaza con 422.
+Escribir en una colección que el manifiesto no declara se rechaza con 422. Además, el validador de
+carga (regla 11) revisa el código: si encuentra `Dashboard.data.<operación>('nombre', …)`, o una
+constante simple con ese nombre, y la colección no está declarada, rechaza el archivo indicando la
+línea.
 
 ### 2.1 Un parámetro
 

@@ -65,6 +65,18 @@ class PublishDashboardTest extends TestCase
         $this->assertDatabaseCount('dashboards', 0);
     }
 
+    public function test_collection_used_in_code_but_not_declared_is_rejected(): void
+    {
+        $manifest = ['id' => 'calendario', 'version' => '1', 'title' => 'Calendario', 'collections' => [['id' => 'acciones', 'label' => 'Acciones']]];
+        $html = $this->htmlWithManifest($manifest, "<script>const COL_ACT = 'actividades'; Dashboard.data.put(COL_ACT, 'a', {});</script>");
+
+        $this->actingAs($this->admin)->postJson('/api/admin/dashboards', ['html' => $html])
+            ->assertUnprocessable()
+            ->assertJsonPath('problems.0.rule', 11);
+
+        $this->assertDatabaseCount('dashboards', 0);
+    }
+
     public function test_missing_manifest_is_rejected(): void
     {
         $this->actingAs($this->admin)
