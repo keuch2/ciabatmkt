@@ -21,7 +21,7 @@ export const ICON_LABELS: Record<IconKey, string> = {
 };
 
 /** Íconos de la interfaz (menú, acciones). No se ofrecen a los dashboards. */
-export type UiIconKey = 'home' | 'chevron-left' | 'chevron-right' | 'logout' | 'settings' | 'book' | 'history' | 'layers' | 'menu';
+export type UiIconKey = 'home' | 'chevron-left' | 'chevron-right' | 'chevron-down' | 'logout' | 'settings' | 'book' | 'history' | 'layers' | 'menu';
 
 const PATHS: Record<IconKey | UiIconKey, ReactNode> = {
     'chart-bar': <><path d="M3 20h18" /><rect x="5" y="10" width="3" height="7" /><rect x="10.5" y="5" width="3" height="12" /><rect x="16" y="13" width="3" height="4" /></>,
@@ -51,6 +51,7 @@ const PATHS: Record<IconKey | UiIconKey, ReactNode> = {
     home: <><path d="M3 11l9-7 9 7" /><path d="M5 10v10h5v-6h4v6h5V10" /></>,
     'chevron-left': <path d="M15 5l-7 7 7 7" />,
     'chevron-right': <path d="M9 5l7 7-7 7" />,
+    'chevron-down': <path d="M5 9l7 7 7-7" />,
     logout: <><path d="M10 4H5v16h5" /><path d="M14 8l4 4-4 4M18 12H9" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" /></>,
     book: <><path d="M4 4h12a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z" /><path d="M4 4v16" /></>,

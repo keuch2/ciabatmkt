@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { MenuDashboard } from '@/api/menu';
 import { useAuth } from '@/auth/AuthProvider';
 import { useMenu } from '@/menu/MenuProvider';
@@ -6,6 +6,7 @@ import { DashboardIcon, Icon, initials, type UiIconKey } from '@/ui/icons';
 import { RailTooltip } from '@/ui/RailTooltip';
 import { Spinner } from '@/ui/Spinner';
 import logo from '@/assets/logociabay.png';
+import { useClosedDivisions } from './useClosedDivisions';
 
 interface Props {
     collapsed: boolean;
@@ -28,6 +29,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const { user, logout } = useAuth();
     const { menu, loading, error } = useMenu();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [closedDivisions, toggleDivision] = useClosedDivisions();
 
     async function handleLogout() {
         await logout();
@@ -41,20 +44,32 @@ export function Sidebar({ collapsed, onToggle }: Props) {
 
     const sectionClass = `mt-3 mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 ${collapsed ? 'hidden' : ''}`;
     // Divisiones: etiqueta con fondo verde institucional.
-    const divisionClass = 'mt-3 mb-1 inline-block rounded-sm bg-[#1a9e3f] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white';
-    // Contraído: la división es un cuadro verde con ícono y el nombre en el tooltip.
-    const divisionHeader = (name: string) =>
-        collapsed ? (
-            <RailTooltip label={name}>
-                <div className="mt-3 mb-1 flex justify-center" aria-label={name}>
-                    <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#1a9e3f] text-white">
+    const divisionClass = 'inline-flex max-w-full items-center gap-1 rounded-sm bg-[#1a9e3f] py-0.5 pr-1.5 pl-2 text-[11px] font-bold uppercase tracking-wide text-white';
+    // La división es un botón que pliega y despliega sus dashboards. Contraído el menú, es un cuadro
+    // verde con ícono y el nombre en el tooltip.
+    const divisionHeader = (id: string, name: string, open: boolean, count: number) => {
+        const label = `${name} · ${open ? 'ocultar' : `mostrar ${count}`}`;
+        return collapsed ? (
+            <RailTooltip label={open ? name : `${name} (${count} ocultos)`}>
+                <button type="button" onClick={() => toggleDivision(id)} aria-expanded={open} aria-label={label} className="mt-3 mb-1 flex w-full justify-center">
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
                         <Icon name="layers" className="h-3.5 w-3.5" />
                     </span>
-                </div>
+                </button>
             </RailTooltip>
         ) : (
-            <p className={divisionClass}>{name}</p>
+            <button type="button" onClick={() => toggleDivision(id)} aria-expanded={open} title={label} className="mt-3 mb-1 flex w-full items-center justify-between gap-2 rounded text-left hover:bg-slate-200/60">
+                <span className={divisionClass}>
+                    <span className="truncate">{name}</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1 pr-1 text-slate-500">
+                    {!open && <span className="text-[10px] tabular-nums">{count}</span>}
+                    <Icon name={open ? 'chevron-down' : 'chevron-right'} className="h-3.5 w-3.5" />
+                </span>
+            </button>
         );
+    };
+
     const divider = collapsed ? <div className="my-2 border-t border-slate-200" aria-hidden="true" /> : null;
 
     const dashboardLink = (d: MenuDashboard, context: string) => (
@@ -74,7 +89,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const hasAny = !!menu && (menu.divisions.length > 0 || menu.company.length > 0 || menu.unassigned.length > 0);
 
     return (
-        <aside className={`flex min-h-screen flex-col border-r border-slate-200 bg-slate-50 ${collapsed ? 'w-14' : 'w-60'}`}>
+        <aside className={`sticky top-0 flex h-screen flex-col self-start border-r border-slate-200 bg-slate-50 ${collapsed ? 'w-14' : 'w-60'}`}>
             <div className={`border-b border-slate-200 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'}`}>
                 {collapsed ? (
                     <div className="flex h-8 items-center justify-center rounded bg-slate-800 text-xs font-bold text-white" title={`Ciabay · ${user?.name ?? ''}`}>
@@ -85,7 +100,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 )}
             </div>
 
-            <nav className={`flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-1.5 py-2' : 'px-2 py-2'}`} aria-label="Menú principal">
+            <nav className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-1.5 py-2' : 'px-2 py-2'}`} aria-label="Menú principal">
                 <RailTooltip label="Inicio" enabled={collapsed}>
                     <NavLink to="/" end className={linkClass}>
                         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
@@ -102,18 +117,25 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 )}
                 {error && !collapsed && <p className="px-2 py-2 text-xs text-red-700">{error}</p>}
 
-                {menu?.divisions.map((division) => (
-                    <div key={division.id}>
-                        {divisionHeader(division.name)}
-                        {division.dashboards.map((d) => dashboardLink(d, division.name))}
-                        {division.groups.map((group) => (
-                            <div key={group.id} className={collapsed ? '' : 'ml-2 border-l border-slate-200 pl-1.5'}>
-                                {!collapsed && <p className="mt-1.5 mb-0.5 px-2 text-[11px] font-medium text-slate-500">{group.name}</p>}
-                                {group.dashboards.map((d) => dashboardLink(d, `${division.name} / ${group.name}`))}
-                            </div>
-                        ))}
-                    </div>
-                ))}
+                {menu?.divisions.map((division) => {
+                    const all = [...division.dashboards, ...division.groups.flatMap((g) => g.dashboards)];
+                    // Nunca se oculta el dashboard que se está viendo: su división se muestra abierta.
+                    const hasActive = all.some((d) => location.pathname.startsWith(`/dashboards/${d.id}`));
+                    const open = !closedDivisions.has(division.id) || hasActive;
+                    return (
+                        <div key={division.id}>
+                            {divisionHeader(division.id, division.name, open, all.length)}
+                            {open && division.dashboards.map((d) => dashboardLink(d, division.name))}
+                            {open &&
+                                division.groups.map((group) => (
+                                    <div key={group.id} className={collapsed ? '' : 'ml-2 border-l border-slate-200 pl-1.5'}>
+                                        {!collapsed && <p className="mt-1.5 mb-0.5 px-2 text-[11px] font-medium text-slate-500">{group.name}</p>}
+                                        {group.dashboards.map((d) => dashboardLink(d, `${division.name} / ${group.name}`))}
+                                    </div>
+                                ))}
+                        </div>
+                    );
+                })}
 
                 {menu && menu.company.length > 0 && (
                     <div>
@@ -155,7 +177,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 )}
             </nav>
 
-            <div className={`flex border-t border-slate-200 ${collapsed ? 'flex-col items-center gap-1 px-1.5 py-2' : 'items-center justify-between px-2 py-2'}`}>
+            <div className={`flex shrink-0 border-t border-slate-200 ${collapsed ? 'flex-col items-center gap-1 px-1.5 py-2' : 'items-center justify-between px-2 py-2'}`}>
                 <button
                     type="button"
                     onClick={onToggle}
