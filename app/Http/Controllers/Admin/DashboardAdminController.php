@@ -8,9 +8,11 @@ use App\Http\Requests\Admin\StoreDashboardRequest;
 use App\Http\Requests\Admin\UpdateDashboardRequest;
 use App\Http\Resources\DashboardSummaryResource;
 use App\Models\Dashboard;
+use App\Services\Dashboards\DashboardArchiver;
 use App\Services\Dashboards\DashboardPublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class DashboardAdminController extends Controller
@@ -130,9 +132,11 @@ class DashboardAdminController extends Controller
         }
     }
 
-    public function destroy(Dashboard $dashboard): Response
+    public function destroy(Request $request, Dashboard $dashboard, DashboardArchiver $archiver): Response
     {
-        // param_values y param_value_history caen en cascada por FK.
+        // Todo lo que cae en cascada (registros, historiales, valores) queda archivado en disco;
+        // se recupera con `php artisan dashboards:restore`.
+        $archiver->archive($dashboard, $request->user());
         $dashboard->delete();
 
         return response()->noContent();

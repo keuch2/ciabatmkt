@@ -96,7 +96,7 @@ php artisan up
 
 ## 5. Copias de seguridad
 
-Lo único con estado es la base de datos (`dashboards`, `param_values`, `param_value_history`,
+En producción (Ferozo) ya corre `/etc/cron.d/ciabay-marketing-backup`: volcado diario a `/root/backups/ciabay_marketing` con 14 días de retención. Lo único con estado es la base de datos (`dashboards`, `param_values`, `param_value_history`,
 `users`). Un `mysqldump` diario alcanza:
 
 ```bash

@@ -45,7 +45,7 @@ export function AdminDashboardsPage() {
     }
 
     function remove(d: DashboardSummary) {
-        if (!window.confirm(`¿Eliminar «${d.title}»? Se borran también los valores guardados por los usuarios y su historial.`)) return;
+        if (!window.confirm(`¿Eliminar «${d.title}»?\n\nLos datos cargados por los usuarios y su historial dejan de estar disponibles en la plataforma. Quedan archivados en el servidor y sólo un técnico puede restaurarlos.`)) return;
         void run(d.id, () => deleteDashboard(d.id), `«${d.title}» fue eliminado.`);
     }
 

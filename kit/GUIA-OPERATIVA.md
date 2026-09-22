@@ -40,8 +40,15 @@ Si el `id` del manifiesto ya existe, la plataforma no crea otro: te avisa y te l
 
 - **Despublicar** oculta el dashboard a los usuarios sin borrar nada. Sirve para retirar una
   versión con problemas mientras se corrige.
-- **Eliminar** borra el dashboard, **todos** los valores guardados por los usuarios y su historial.
-  No se puede deshacer. Preferí despublicar.
+- **Eliminar** quita el dashboard de la plataforma junto con **todos** los datos cargados por los
+  usuarios y su historial. Antes de borrar, la plataforma archiva esos datos en el servidor
+  (`storage/app/private/dashboard-archive/`); un técnico puede volver a cargarlos con
+  `php artisan dashboards:restore` en un dashboard con el mismo id de manifiesto. Igual, preferí
+  despublicar: es reversible con un clic.
+- **Reemplazar un dashboard por otro archivo con distinto id** crea un dashboard nuevo y vacío: los
+  datos no se mueven solos. Para conservar lo cargado, actualizá el existente con el mismo `id`.
+- La base de datos se copia todos los días a las 03:15 en el servidor (`/root/backups/ciabay_marketing`,
+  14 días de retención).
 
 ## 4. Datos cargados por los usuarios
 
