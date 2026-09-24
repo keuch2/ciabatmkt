@@ -47,11 +47,14 @@ npm run build --silent
 
 echo "==> 2/6 rsync del código a $REMOTE:$APP_DIR"
 "${SSH[@]}" "$REMOTE" "mkdir -p '$APP_DIR' && chown $OWNER '$APP_DIR'"
-rsync -az --delete -e "$RSYNC_RSH" \
+rsync -rlptDz --delete -e "$RSYNC_RSH" \
   --exclude '.git' --exclude 'node_modules' --exclude 'vendor' --exclude '.env' --exclude 'bootstrap/cache/*' \
   --exclude 'storage/logs/*' --exclude 'storage/framework/cache/*' --exclude 'storage/framework/sessions/*' \
   --exclude 'storage/framework/views/*' --exclude 'public/hot' --exclude 'deploy/.env.*.local' \
   ./ "$REMOTE:$APP_DIR/"
+# La propiedad se corrige acá mismo, antes de composer y de las cachés: si un paso posterior falla,
+# los archivos ya son de $OWNER y Apache sigue sirviendo build/ a través del enlace.
+"${SSH[@]}" "$REMOTE" "chown -R $OWNER '$APP_DIR'"
 
 echo "==> 3/6 .env"
 if "${SSH[@]}" "$REMOTE" "test -f '$APP_DIR/.env'"; then
