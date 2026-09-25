@@ -23,6 +23,7 @@ class DashboardPublisher
         private readonly HtmlSecurityScanner $scanner,
         private readonly ManifestDiff $diff,
         private readonly CollectionUsageChecker $collections,
+        private readonly DashboardSnapshot $snapshot,
     ) {}
 
     /** Corre las diez reglas sin persistir nada. */
@@ -47,6 +48,7 @@ class DashboardPublisher
      */
     public function publish(string $html, User $author, bool $isPublished = true): Dashboard
     {
+        $html = $this->snapshot->strip($html);
         $analysis = $this->analyzeOrFail($html);
         $manifest = $analysis->manifest;
 
@@ -68,6 +70,7 @@ class DashboardPublisher
      */
     public function update(Dashboard $dashboard, string $html): array
     {
+        $html = $this->snapshot->strip($html);
         $analysis = $this->analyzeOrFail($html);
         $manifest = $analysis->manifest;
 

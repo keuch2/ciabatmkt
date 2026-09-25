@@ -45,6 +45,13 @@ Si el `id` del manifiesto ya existe, la plataforma no crea otro: te avisa y te l
   (`storage/app/private/dashboard-archive/`); un técnico puede volver a cargarlos con
   `php artisan dashboards:restore` en un dashboard con el mismo id de manifiesto. Igual, preferí
   despublicar: es reversible con un clic.
+- **Descargar HTML** (menú Más) baja el archivo vigente tal como se cargó. **Descargar HTML con
+  datos** baja una copia que trae adentro todo lo cargado por los usuarios hasta ese momento; al
+  abrirla suelta en un navegador se ve lo mismo que en la plataforma, con un aviso al pie de que
+  los cambios no se guardan. Sirve como respaldo y para revisar sin conexión. Cualquiera de las dos
+  se puede volver a subir con **Actualizar archivo** sin modificar los datos cargados.
+- **Actualizar el archivo nunca reemplaza los datos.** Los datos iniciales que trae un archivo sólo
+  se cargan cuando una colección está vacía; una colección con datos no se toca.
 - **Reemplazar un dashboard por otro archivo con distinto id** crea un dashboard nuevo y vacío: los
   datos no se mueven solos. Para conservar lo cargado, actualizá el existente con el mismo `id`.
 - La base de datos se copia todos los días a las 03:15 en el servidor (`/root/backups/ciabay_marketing`,

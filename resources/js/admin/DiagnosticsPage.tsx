@@ -175,7 +175,12 @@ export function DiagnosticsPage() {
                         <a href={withBase(dashboardHtmlPath(id))} download className="underline">
                             {summary.dashboard.slug}-v{summary.dashboard.version}.html
                         </a>
-                        .
+{' '}
+                        (o{' '}
+                        <a href={withBase(dashboardHtmlPath(id, true))} download className="underline">
+                            con los datos actuales
+                        </a>
+                        ).
                     </li>
                     <li>
                         En <Link to="/admin/docs" className="underline">Docs</Link>, pestaña "Prompt de corrección": pegá el bloque, el informe y el archivo en el asistente de IA.

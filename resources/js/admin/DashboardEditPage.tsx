@@ -148,11 +148,15 @@ export function DashboardEditPage() {
                     <a href={withBase(dashboardHtmlPath(id))} download className="underline">
                         Descargar el HTML vigente
                     </a>{' '}
-                    (versión {dashboard.version}). Para reemplazarlo por una versión nueva, usá{' '}
+                    (versión {dashboard.version}) o{' '}
+                    <a href={withBase(dashboardHtmlPath(id, true))} download className="underline">
+                        descargarlo con los datos actuales
+                    </a>
+                    , una copia que al abrirse suelta muestra lo cargado por los usuarios. Para reemplazarlo por una versión nueva, usá{' '}
                     <Link to={`/admin/dashboards/${id}/update`} className="underline">
                         Actualizar archivo
                     </Link>
-                    . La asignación y el ícono se conservan.
+                    . La asignación y el ícono se conservan, y <strong>los datos cargados por los usuarios nunca se reemplazan</strong>: los datos iniciales del archivo sólo se usan cuando una colección está vacía.
                 </section>
 
                 <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">

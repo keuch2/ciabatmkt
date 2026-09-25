@@ -157,4 +157,4 @@ export function getDiagnostics(dashboardId: string): Promise<Diagnostics> {
     return api('GET', `/api/admin/dashboards/${dashboardId}/diagnostics`);
 }
 
-export const dashboardHtmlPath = (dashboardId: string) => `/api/admin/dashboards/${dashboardId}/html`;
+export const dashboardHtmlPath = (dashboardId: string, withData = false) => `/api/admin/dashboards/${dashboardId}/html${withData ? '?data=1' : ''}`;

@@ -10,6 +10,7 @@ use App\Http\Resources\DashboardSummaryResource;
 use App\Models\Dashboard;
 use App\Services\Dashboards\DashboardArchiver;
 use App\Services\Dashboards\DashboardDiagnostics;
+use App\Services\Dashboards\DashboardSnapshot;
 use App\Services\Dashboards\DashboardPublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -136,12 +137,17 @@ class DashboardAdminController extends Controller
         }
     }
 
-    /** Descarga del HTML vigente, tal como fue cargado. */
-    public function html(Dashboard $dashboard): StreamedResponse
+    /**
+     * Descarga del HTML vigente. Con ?data=1, incluye los datos actuales de la plataforma para
+     * abrirlo suelto; volver a subir cualquiera de las dos variantes no modifica los datos.
+     */
+    public function html(Request $request, Dashboard $dashboard, DashboardSnapshot $snapshot): StreamedResponse
     {
-        $html = $dashboard->html;
+        $withData = $request->boolean('data');
+        $html = $withData ? $snapshot->build($dashboard) : $dashboard->html;
+        $name = "{$dashboard->slug}-v{$dashboard->version}".($withData ? '-con-datos-'.now()->format('Ymd-Hi') : '').'.html';
 
-        return response()->streamDownload(fn () => print($html), "{$dashboard->slug}-v{$dashboard->version}.html", ['Content-Type' => 'text/html; charset=utf-8']);
+        return response()->streamDownload(fn () => print($html), $name, ['Content-Type' => 'text/html; charset=utf-8']);
     }
 
     public function diagnostics(Dashboard $dashboard, DashboardDiagnostics $diagnostics): JsonResponse

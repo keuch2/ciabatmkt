@@ -148,6 +148,7 @@ export function AdminDashboardsPage() {
                                                 items={[
                                                     { label: 'Diagnóstico', onClick: () => navigate(`/admin/dashboards/${d.id}/diagnostics`) },
                                                     { label: 'Descargar HTML', onClick: () => window.open(withBase(dashboardHtmlPath(d.id)), '_blank') },
+                                                    { label: 'Descargar HTML con datos', onClick: () => window.open(withBase(dashboardHtmlPath(d.id, true)), '_blank') },
                                                     { label: 'Actualizar archivo', onClick: () => navigate(`/admin/dashboards/${d.id}/update`) },
                                                     { label: 'Historial', onClick: () => navigate(`/admin/history?dashboard=${d.id}`) },
                                                     ...(d.param_count > 0
