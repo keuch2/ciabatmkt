@@ -53,6 +53,11 @@ class Dashboard extends Model
         return $this->hasMany(ParamValueHistory::class);
     }
 
+    public function writeFailures(): HasMany
+    {
+        return $this->hasMany(DashboardWriteFailure::class);
+    }
+
     public function divisions(): BelongsToMany
     {
         return $this->belongsToMany(Division::class)->orderBy('sort_order')->orderBy('name');

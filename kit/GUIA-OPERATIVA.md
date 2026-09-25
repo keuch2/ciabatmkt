@@ -157,14 +157,33 @@ al dashboard; «›» lo vuelve a expandir. La elección se recuerda en ese nave
   estaba conectado, pierde la sesión en su próxima acción. Sus valores y su historial se conservan.
 - No podés desactivarte ni quitarte el rol de super administrador a vos mismo.
 
-## 10. Ampliar la lista de CDN
+## 10. Cuando un dashboard "no guarda"
+
+**Administración → Dashboards → Más → Diagnóstico** analiza el dashboard sin tocar código:
+
+- corre las reglas del validador sobre el archivo vigente;
+- compara las colecciones declaradas, las usadas en el código y las que tienen datos;
+- marca registros cerca del tope de tamaño;
+- lista las escrituras que la plataforma rechazó en los últimos 7 días, con usuario y motivo, los
+  conflictos entre usuarios y los guardados repetidos que no cambian nada (señal de que la pantalla
+  muestra algo que el archivo no llega a enviar).
+
+Cada hallazgo dice qué hacer. Si hace falta corregir el archivo: **Copiar informe**, **Descargar
+HTML** y usar el **Prompt de corrección** de Docs con un asistente de IA; después, **Actualizar
+archivo** y volver a analizar. En la tabla de dashboards, una etiqueta roja "N rechazadas" avisa
+cuando hubo escrituras rechazadas en la semana.
+
+Además, cuando una escritura falla, el usuario ve el motivo arriba del dashboard aunque el archivo
+no lo muestre.
+
+## 11. Ampliar la lista de CDN
 
 Los hosts permitidos para scripts, estilos y `fetch` de los dashboards se configuran en el
 servidor, en la variable `DASHBOARD_CDN_ALLOWLIST` del archivo `.env` (separados por coma).
 Después de cambiarla: `php artisan config:clear`. Los dashboards ya publicados toman la lista
 nueva al abrirse.
 
-## 11. Problemas frecuentes
+## 12. Problemas frecuentes
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
@@ -175,6 +194,7 @@ nueva al abrirse.
 | El iframe queda con un aviso de que no llamó `ready()` | El dashboard no llama `Dashboard.ready()` o tiene un error antes. | Ver los errores mostrados sobre el iframe; agregar la llamada. |
 | El iframe queda muy alto o muy bajo | El dashboard mide con `documentElement.scrollHeight` o fija `100vh`. | Usar `Dashboard.setHeight()` sin argumento y quitar alturas de viewport. |
 | Un usuario ve valores "obsoletos" | Cambió el tipo o el rango en una versión nueva. | Esperado: al guardar un valor nuevo se reemplaza. |
+| Las casillas o valores se ven marcados pero al recargar desaparecen | El archivo guardaba en una estructura que JSON no serializa, o la plataforma (hasta el 25/9) convertía objetos vacíos en listas. | Diagnóstico → si aparece "guardados sin cambio real", corregir con el prompt de corrección. La plataforma ya conserva los objetos vacíos. |
 | Una sección del dashboard "no guarda" y el resto sí | El código usa una colección que no está en `collections` del manifiesto (típico al agregar una función nueva). | Desde ahora el validador lo rechaza al publicar (regla 11) y, si ocurre, el motivo aparece arriba del dashboard. Agregar la colección al manifiesto y actualizar. |
 | "La colección «x» no está declarada en el manifiesto" | El dashboard escribe en una colección que no figura en `collections`. | Agregarla al manifiesto y actualizar el dashboard. |
 | Los usuarios no ven los datos de otros | El dashboard guarda en memoria o con `localStorage` en lugar de `Dashboard.data`. | Adaptar el archivo con el prompt de Docs. |

@@ -37,9 +37,9 @@ class RestoreDashboardArchive extends Command
                 return self::SUCCESS;
             }
             $this->table(['Archivo', 'Tamaño', 'Registros'], $files->map(function ($f) use ($disk) {
-                $payload = json_decode($disk->get($f), true);
+                $payload = json_decode($disk->get($f));
 
-                return [basename($f), number_format($disk->size($f) / 1024).' KB', count($payload['records'] ?? [])];
+                return [basename($f), number_format($disk->size($f) / 1024).' KB', count($payload->records ?? [])];
             })->all());
             $this->line('Restaurar: php artisan dashboards:restore <archivo> --dashboard=<id o slug>');
 
@@ -52,9 +52,9 @@ class RestoreDashboardArchive extends Command
 
             return self::FAILURE;
         }
-        $payload = json_decode($disk->get($path), true);
+        $payload = json_decode($disk->get($path));
 
-        $key = $this->option('dashboard') ?: $payload['dashboard']['slug'];
+        $key = $this->option('dashboard') ?: $payload->dashboard->slug;
         $dashboard = Dashboard::query()->where('id', $key)->orWhere('slug', $key)->first();
         if ($dashboard === null) {
             $this->error("No hay un dashboard «{$key}». Publicá primero el archivo HTML (mismo id de manifiesto) y volvé a correr el comando.");
@@ -63,7 +63,7 @@ class RestoreDashboardArchive extends Command
         }
 
         $only = $this->option('collection');
-        $byCollection = collect($payload['records'])->groupBy('collection')->when($only, fn ($c) => $c->only($only));
+        $byCollection = collect($payload->records)->groupBy(fn ($r) => $r->collection)->when($only, fn ($c) => $c->only($only));
         $declared = array_column($dashboard->manifestCollections(), 'id');
         $actor = User::query()->where('role', 'super_admin')->orderBy('created_at')->firstOrFail();
 
@@ -73,7 +73,7 @@ class RestoreDashboardArchive extends Command
 
                 continue;
             }
-            $rows = $records->map(fn ($r) => ['id' => $r['id'], 'data' => $r['data']])->values()->all();
+            $rows = $records->map(fn ($r) => ['id' => $r->id, 'data' => $r->data])->values()->all();
             if ($this->option('dry-run')) {
                 $this->line("{$collection}: {$records->count()} registros se cargarían".($this->option('replace') ? ' (reemplazando)' : ' (sólo si está vacía)'));
 

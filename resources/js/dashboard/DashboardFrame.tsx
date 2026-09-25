@@ -101,7 +101,7 @@ export function DashboardFrame({ dashboardId, html, csp, viewer, params, onParam
                         : { code: 'network', message: 'Sin conexión con el servidor.' };
                 // Una colección sin declarar es un defecto del dashboard, no del usuario: se muestra arriba
                 // para que quede claro por qué "no guarda", aunque el dashboard tape el mensaje.
-                if (e instanceof ApiError && e.fieldError('collection')) callbacks.current.onError?.(e.fieldError('collection')!);
+                if (e instanceof ApiError && e.status !== 409) callbacks.current.onError?.(`No se pudo guardar en «${collection}»: ${error.message}`);
                 send({ type: 'data:response', requestId, ok: false, error });
             }
         }

@@ -4,6 +4,7 @@ import { AdminDashboardsPage } from '@/admin/AdminDashboardsPage';
 import { DashboardUploadPage } from '@/admin/DashboardUploadPage';
 import { DashboardEditPage } from '@/admin/DashboardEditPage';
 import { DataPage } from '@/admin/DataPage';
+import { DiagnosticsPage } from '@/admin/DiagnosticsPage';
 import { DivisionsPage } from '@/admin/DivisionsPage';
 import { DocsPage } from '@/admin/DocsPage';
 import { HistoryPage } from '@/admin/HistoryPage';
@@ -49,6 +50,7 @@ export const router = createBrowserRouter(
                                 { path: 'dashboards/:id/overview', element: <OverviewPage /> },
                                 { path: 'dashboards/:id/data', element: <DataPage /> },
                                 { path: 'dashboards/:id/edit', element: <DashboardEditPage /> },
+                                { path: 'dashboards/:id/diagnostics', element: <DiagnosticsPage /> },
                                 { path: 'divisions', element: <DivisionsPage /> },
                                 { path: 'users', element: <UsersPage /> },
                                 { path: 'history', element: <HistoryPage /> },

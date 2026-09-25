@@ -22,7 +22,15 @@ class DocsController extends Controller
         $template = $this->read('PLANTILLA-PROMPT.md');
         [$intro, $prompt, $example] = $this->splitTemplate($template);
 
+        $fix = $this->read('PLANTILLA-CORRECCION.md');
+        [$fixIntro, $fixPrompt, $fixExample] = $this->splitTemplate($fix);
+
         return response()->json([
+            'fix_prompt' => [
+                'intro_html' => Str::markdown($fixIntro),
+                'text' => $fixPrompt,
+                'example_html' => Str::markdown($fixExample),
+            ],
             'prompt' => [
                 'intro_html' => Str::markdown($intro),
                 'text' => $prompt,

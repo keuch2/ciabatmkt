@@ -18,7 +18,8 @@ class DashboardRecord extends Model
     protected function casts(): array
     {
         return [
-            'data' => 'array',
+            // 'object' y no 'array': un {} vacío debe volver como {} al dashboard (como array se convierte en []).
+            'data' => 'object',
             'version' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

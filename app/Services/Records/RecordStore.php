@@ -18,10 +18,40 @@ class RecordStore
 {
     public const ID_PATTERN = '/^[A-Za-z0-9][A-Za-z0-9_.:\-]{0,99}$/';
 
+    /** true cuando el último put no cambió nada (mismo contenido que el guardado). */
+    public bool $lastPutWasNoop = false;
+
     public function __construct(
         private readonly int $maxRecords,
         private readonly int $maxBytes,
     ) {}
+
+    /** JSON re-serializado de forma estable (MySQL normaliza espacios y orden de claves). */
+    private function canonical(string $json): string
+    {
+        $decoded = json_decode($json);
+
+        return json_encode($this->sortKeys($decoded), JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    private function sortKeys(mixed $value): mixed
+    {
+        if (is_object($value)) {
+            $arr = (array) $value;
+            ksort($arr);
+            $out = new \stdClass;
+            foreach ($arr as $k => $v) {
+                $out->{$k} = $this->sortKeys($v);
+            }
+
+            return $out;
+        }
+        if (is_array($value)) {
+            return array_map(fn ($v) => $this->sortKeys($v), $value);
+        }
+
+        return $value;
+    }
 
     /** @return array{records: list<array>, server_time: string} */
     public function list(Dashboard $dashboard, string $collection): array
@@ -48,6 +78,8 @@ class RecordStore
         $this->assertRecordId($recordId);
         $json = $this->assertData($def, $recordId, $data);
 
+        $this->lastPutWasNoop = false;
+
         return DB::transaction(function () use ($dashboard, $collection, $recordId, $json, $expectedVersion, $actor, $def) {
             $current = DashboardRecord::query()
                 ->where('dashboard_id', $dashboard->id)->where('collection', $collection)->where('record_id', $recordId)
@@ -68,7 +100,9 @@ class RecordStore
                     throw new RecordConflictException($current->toRecordArray());
                 }
                 // Sin cambio real no se toca la fila: ni versión, ni updated_at, ni historial.
-                if (json_encode($current->data, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION) === $json) {
+                if ($this->canonical($current->getRawOriginal('data')) === $this->canonical($json)) {
+                    $this->lastPutWasNoop = true;
+
                     return $this->find($dashboard, $collection, $recordId);
                 }
                 DB::table('dashboard_records')->where('id', $current->id)->update([
@@ -196,8 +230,13 @@ class RecordStore
         $rows = [];
         $seen = [];
         foreach ($records as $i => $record) {
+            if (is_object($record)) {
+                $record = ['id' => $record->id ?? null, 'data' => property_exists($record, 'data') ? $record->data : null, '_has' => property_exists($record, 'data')];
+            } elseif (is_array($record)) {
+                $record['_has'] = array_key_exists('data', $record);
+            }
             $id = is_array($record) ? ($record['id'] ?? null) : null;
-            if (! is_string($id) || ! is_array($record) || ! array_key_exists('data', $record)) {
+            if (! is_string($id) || ! is_array($record) || ! $record['_has']) {
                 throw ValidationException::withMessages(['records' => "El registro en la posición {$i} debe tener \"id\" (texto) y \"data\"."]);
             }
             $this->assertRecordId($id);
@@ -221,10 +260,13 @@ class RecordStore
         }
     }
 
-    /** Devuelve el JSON serializado del registro, validado en forma y tamaño. */
+    /**
+     * Devuelve el JSON serializado del registro, validado en forma y tamaño. Acepta objetos
+     * (stdClass) además de arreglos: es la única forma de conservar un {} vacío tal cual.
+     */
     private function assertData(array $def, string $recordId, mixed $data): string
     {
-        if (! is_array($data)) {
+        if (! is_array($data) && ! is_object($data)) {
             throw ValidationException::withMessages(['data' => "El registro «{$recordId}» debe ser un objeto o un arreglo JSON."]);
         }
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);

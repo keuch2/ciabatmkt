@@ -7,10 +7,11 @@ import { Button } from '@/ui/Button';
 import { PageHeader } from '@/ui/PageHeader';
 import { Spinner } from '@/ui/Spinner';
 
-type Tab = 'prompt' | 'spec' | 'guide';
+type Tab = 'prompt' | 'fix' | 'spec' | 'guide';
 
 const TABS: { id: Tab; label: string }[] = [
     { id: 'prompt', label: 'Prompt de integración' },
+    { id: 'fix', label: 'Prompt de corrección' },
     { id: 'spec', label: 'Especificación técnica' },
     { id: 'guide', label: 'Guía operativa' },
 ];
@@ -54,6 +55,7 @@ export function DocsPage() {
             {error && <Alert tone="error">{error}</Alert>}
 
             {data && tab === 'prompt' && <PromptTab intro={data.prompt.intro_html} text={data.prompt.text} example={data.prompt.example_html} />}
+            {data && tab === 'fix' && <PromptTab intro={data.fix_prompt.intro_html} text={data.fix_prompt.text} example={data.fix_prompt.example_html} />}
             {data && tab === 'spec' && <article className="doc rounded border border-slate-200 bg-white p-6" dangerouslySetInnerHTML={{ __html: data.specification_html }} />}
             {data && tab === 'guide' && <article className="doc rounded border border-slate-200 bg-white p-6" dangerouslySetInnerHTML={{ __html: data.guide_html }} />}
         </div>

@@ -5,6 +5,8 @@ import { adminListDashboards, deleteDashboard, updateDashboard, type DashboardSu
 import { useRequest } from '@/app/useRequest';
 import { useMenu } from '@/menu/MenuProvider';
 import { DashboardIcon } from '@/ui/icons';
+import { dashboardHtmlPath } from '@/api/admin';
+import { withBase } from '@/app/basePath';
 import { ActionsMenu } from '@/ui/ActionsMenu';
 import { Alert } from '@/ui/Alert';
 import { Button } from '@/ui/Button';
@@ -112,6 +114,11 @@ export function AdminDashboardsPage() {
                                         >
                                             {d.is_published ? 'Publicado' : 'Borrador'}
                                         </span>
+                                        {(d.failures_7d ?? 0) > 0 && (
+                                            <Link to={`/admin/dashboards/${d.id}/diagnostics`} className="ml-1 rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-800 hover:bg-red-200" title="Escrituras rechazadas en los últimos 7 días">
+                                                {d.failures_7d} rechazada{d.failures_7d === 1 ? '' : 's'}
+                                            </Link>
+                                        )}
                                     </td>
                                     <td className="px-3 py-2 text-xs">
                                         <Link to={`/admin/dashboards/${d.id}/edit`} className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-100" title="Editar: ícono, quién lo ve y publicación">
@@ -139,6 +146,8 @@ export function AdminDashboardsPage() {
                                             </Button>
                                             <ActionsMenu
                                                 items={[
+                                                    { label: 'Diagnóstico', onClick: () => navigate(`/admin/dashboards/${d.id}/diagnostics`) },
+                                                    { label: 'Descargar HTML', onClick: () => window.open(withBase(dashboardHtmlPath(d.id)), '_blank') },
                                                     { label: 'Actualizar archivo', onClick: () => navigate(`/admin/dashboards/${d.id}/update`) },
                                                     { label: 'Historial', onClick: () => navigate(`/admin/history?dashboard=${d.id}`) },
                                                     ...(d.param_count > 0

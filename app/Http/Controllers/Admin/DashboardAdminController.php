@@ -9,11 +9,13 @@ use App\Http\Requests\Admin\UpdateDashboardRequest;
 use App\Http\Resources\DashboardSummaryResource;
 use App\Models\Dashboard;
 use App\Services\Dashboards\DashboardArchiver;
+use App\Services\Dashboards\DashboardDiagnostics;
 use App\Services\Dashboards\DashboardPublisher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardAdminController extends Controller
 {
@@ -22,7 +24,9 @@ class DashboardAdminController extends Controller
     public function index(): AnonymousResourceCollection
     {
         return DashboardSummaryResource::collection(
-            Dashboard::query()->with(['creator', 'divisions', 'groups.division'])->orderBy('title')->get(),
+            Dashboard::query()->with(['creator', 'divisions', 'groups.division'])
+                ->withCount(['writeFailures as failures_7d' => fn ($q) => $q->where('created_at', '>=', now()->subDays(7))->where('code', '!=', 'noop')])
+                ->orderBy('title')->get(),
         );
     }
 
@@ -130,6 +134,19 @@ class DashboardAdminController extends Controller
         if ($request->has('group_ids')) {
             $dashboard->groups()->sync((array) $request->input('group_ids', []));
         }
+    }
+
+    /** Descarga del HTML vigente, tal como fue cargado. */
+    public function html(Dashboard $dashboard): StreamedResponse
+    {
+        $html = $dashboard->html;
+
+        return response()->streamDownload(fn () => print($html), "{$dashboard->slug}-v{$dashboard->version}.html", ['Content-Type' => 'text/html; charset=utf-8']);
+    }
+
+    public function diagnostics(Dashboard $dashboard, DashboardDiagnostics $diagnostics): JsonResponse
+    {
+        return response()->json($diagnostics->run($dashboard));
     }
 
     public function destroy(Request $request, Dashboard $dashboard, DashboardArchiver $archiver): Response

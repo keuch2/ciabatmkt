@@ -25,6 +25,7 @@ class DashboardSummaryResource extends JsonResource
                 'division_name' => $g->relationLoaded('division') && $g->division ? $g->division->name : null,
             ])->values()),
             'param_count' => count($this->manifestParams()),
+            'failures_7d' => $this->when(isset($this->failures_7d), fn () => (int) $this->failures_7d),
             'created_by' => $this->whenLoaded('creator', fn () => ['id' => $this->creator->id, 'name' => $this->creator->name]),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

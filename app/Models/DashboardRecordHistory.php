@@ -20,8 +20,8 @@ class DashboardRecordHistory extends Model
     protected function casts(): array
     {
         return [
-            'old_data' => 'array',
-            'new_data' => 'array',
+            'old_data' => 'object',
+            'new_data' => 'object',
             'version' => 'integer',
             'changed_at' => 'datetime',
         ];

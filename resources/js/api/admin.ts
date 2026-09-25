@@ -69,6 +69,7 @@ export function getAdminHistory(dashboardId: string, filters: HistoryFilters): P
 
 export interface Docs {
     prompt: { intro_html: string; text: string; example_html: string };
+    fix_prompt: { intro_html: string; text: string; example_html: string };
     specification_html: string;
     guide_html: string;
     cdn_allowlist: string[];
@@ -127,3 +128,33 @@ export function getDataHistory(dashboardId: string, filters: DataHistoryFilters)
     const qs = query.toString();
     return api('GET', `/api/admin/dashboards/${dashboardId}/data-history${qs ? `?${qs}` : ''}`);
 }
+
+/* ---------- Diagnóstico y descarga ---------- */
+
+export interface DiagnosticFinding {
+    severity: 'error' | 'warning' | 'info';
+    area: string;
+    message: string;
+    action: string;
+}
+
+export interface Diagnostics {
+    status: 'ok' | 'warning' | 'error';
+    findings: DiagnosticFinding[];
+    summary: {
+        dashboard: { id: string; slug: string; title: string; version: string; updated_at: string | null };
+        collections: { id: string; label: string; records: number; max_bytes: number; cap_bytes: number; last_write: string | null; used_in_code: boolean | null }[];
+        writes_last_days: number;
+        last_write: string | null;
+        failures_last_days: Record<string, number>;
+        recent_failures: { at: string | null; code: string; operation: string; collection: string; record_id: string | null; user: string | null; message: string; bytes: number | null }[];
+        days: number;
+    };
+    report: string;
+}
+
+export function getDiagnostics(dashboardId: string): Promise<Diagnostics> {
+    return api('GET', `/api/admin/dashboards/${dashboardId}/diagnostics`);
+}
+
+export const dashboardHtmlPath = (dashboardId: string) => `/api/admin/dashboards/${dashboardId}/html`;

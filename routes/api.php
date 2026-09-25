@@ -55,6 +55,8 @@ Route::middleware(['auth:sanctum', 'active', 'super_admin'])->prefix('admin')->g
     Route::post('dashboards', [DashboardAdminController::class, 'store']);
     Route::put('dashboards/{dashboard}', [DashboardAdminController::class, 'update']);
     Route::delete('dashboards/{dashboard}', [DashboardAdminController::class, 'destroy']);
+    Route::get('dashboards/{dashboard}/html', [DashboardAdminController::class, 'html']);
+    Route::get('dashboards/{dashboard}/diagnostics', [DashboardAdminController::class, 'diagnostics']);
 
     Route::get('dashboards/{dashboard}/overview', OverviewController::class);
     Route::get('dashboards/{dashboard}/history', AdminHistoryController::class);

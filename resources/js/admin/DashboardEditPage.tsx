@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '@/api/client';
 import { adminListDashboards, updateDashboard } from '@/api/dashboards';
+import { dashboardHtmlPath } from '@/api/admin';
+import { withBase } from '@/app/basePath';
 import { listDivisions } from '@/api/divisions';
 import { useRequest } from '@/app/useRequest';
 import { useMenu } from '@/menu/MenuProvider';
@@ -143,7 +145,10 @@ export function DashboardEditPage() {
                 </section>
 
                 <section className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                    Para reemplazar el archivo HTML por una versión nueva, usá{' '}
+                    <a href={withBase(dashboardHtmlPath(id))} download className="underline">
+                        Descargar el HTML vigente
+                    </a>{' '}
+                    (versión {dashboard.version}). Para reemplazarlo por una versión nueva, usá{' '}
                     <Link to={`/admin/dashboards/${id}/update`} className="underline">
                         Actualizar archivo
                     </Link>

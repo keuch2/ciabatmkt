@@ -59,6 +59,7 @@ export interface DashboardSummary {
     divisions?: { id: string; name: string }[];
     groups?: { id: string; name: string; division_id: string; division_name: string | null }[];
     param_count: number;
+    failures_7d?: number;
     created_by?: { id: string; name: string };
     created_at: string | null;
     updated_at: string | null;

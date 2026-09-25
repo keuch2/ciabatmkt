@@ -109,6 +109,35 @@ class RecordsTest extends TestCase
         $this->actingAs($this->ana)->putJson("{$this->url}/a", ['data' => ['n' => 'a2']])->assertOk();
     }
 
+    public function test_empty_objects_survive_the_round_trip(): void
+    {
+        $data = ['vacio' => new \stdClass, 'lista' => [], 'mapa' => ['2026-11-07' => true], 'anidado' => ['dias' => new \stdClass]];
+
+        $this->actingAs($this->ana)->putJson("{$this->url}/ev-1", ['data' => $data])->assertOk();
+        $json = $this->actingAs($this->bruno)->getJson($this->url)->assertOk()->getContent();
+
+        $record = json_decode($json)->records[0]->data;
+        $this->assertSame('{}', json_encode($record->vacio), 'un objeto vacío debe volver como objeto');
+        $this->assertSame('[]', json_encode($record->lista), 'una lista vacía debe volver como lista');
+        $this->assertSame('{}', json_encode($record->anidado->dias));
+        $this->assertTrue($record->mapa->{'2026-11-07'});
+
+        // Guardar de nuevo lo mismo no genera versión nueva pero queda registrado como "sin cambios".
+        $this->actingAs($this->ana)->putJson("{$this->url}/ev-1", ['data' => $data])->assertOk()->assertJsonPath('record.version', 1);
+        $this->assertDatabaseHas('dashboard_write_failures', ['record_id' => 'ev-1', 'code' => 'noop']);
+    }
+
+    public function test_rejected_writes_are_logged_for_diagnostics(): void
+    {
+        $this->actingAs($this->ana)->putJson("/api/dashboards/{$this->dashboard->id}/data/otra/x", ['data' => []])->assertUnprocessable();
+        $this->actingAs($this->ana)->putJson("{$this->url}/ev-1", ['data' => ['a' => 1]]);
+        $this->actingAs($this->bruno)->putJson("{$this->url}/ev-1", ['data' => ['a' => 2], 'version' => 1]);
+        $this->actingAs($this->ana)->putJson("{$this->url}/ev-1", ['data' => ['a' => 3], 'version' => 1])->assertStatus(409);
+
+        $this->assertDatabaseHas('dashboard_write_failures', ['dashboard_id' => $this->dashboard->id, 'collection' => 'otra', 'code' => 'invalid', 'user_id' => $this->ana->id]);
+        $this->assertDatabaseHas('dashboard_write_failures', ['dashboard_id' => $this->dashboard->id, 'record_id' => 'ev-1', 'code' => 'conflict', 'user_id' => $this->ana->id]);
+    }
+
     public function test_record_size_limit(): void
     {
         config(['dashboards.max_record_bytes' => 100]);

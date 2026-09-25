@@ -163,6 +163,16 @@ boot();
 8. **Guardar todo en un solo registro gigante.** Un registro por entidad. Un registro único con
    toda la aplicación adentro hace que dos usuarios se pisen y choca con el tope de tamaño.
 9. **`localStorage`, `sessionStorage` o cookies** como respaldo: el archivo se rechaza.
+10. **Estructuras que JSON no serializa.** Todo lo que se guarda pasa por `JSON.stringify`.
+    Se pierden en silencio: propiedades con nombre sobre una lista (`const dias = []; dias['2026-11-07'] = true`),
+    `Set`, `Map`, `Date`, funciones, `undefined`. Para un mapa por clave usá siempre un objeto
+    (`{}`), para una secuencia una lista (`[]`), y nunca cambies el tipo de un campo entre versiones.
+11. **Confiar en que lo que se ve está guardado.** Después de cada `put`, compará lo guardado con
+    lo que hay en pantalla: `JSON.stringify(res.data) === JSON.stringify(registro)`; si difiere,
+    mostrá un aviso. Es la única forma de que el usuario sepa que su dato no quedó.
+12. **Datos viejos con otra forma.** Al cargar registros de versiones anteriores, normalizalos
+    (por ejemplo, si un campo que debe ser objeto llega como lista, reemplazalo por `{}`) antes
+    de usarlos. Un registro con forma inesperada rompe el guardado de toda la sección.
 
 ## 5. Requisitos técnicos del entorno aislado
 
@@ -189,6 +199,7 @@ El archivo completo en un solo bloque de código, y debajo:
    tu propio código todas las llamadas a `Dashboard.data.*`; cada colección de esa búsqueda debe
    aparecer en el manifiesto, y viceversa.
 2. La confirmación, punto por punto, de la lista de errores de la sección 4.
+3. Para cada operación de guardado, la línea donde se maneja el error con `error.message` visible.
 
 Si estás modificando un dashboard existente, conservá el mismo `id` del manifiesto, subí la
 `version`, y no renombres ni elimines colecciones que ya tienen datos.
