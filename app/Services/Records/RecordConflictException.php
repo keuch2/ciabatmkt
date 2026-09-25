@@ -3,10 +3,12 @@
 namespace App\Services\Records;
 
 use Exception;
+use Illuminate\Contracts\Debug\ShouldntReport;
 use Illuminate\Http\JsonResponse;
 
 /** Otro usuario modificó el registro después de que este cliente lo leyó. Responde 409 con la versión actual. */
-class RecordConflictException extends Exception
+/** Es una situación esperada (dos usuarios editando lo mismo), no un error: no va al log. */
+class RecordConflictException extends Exception implements ShouldntReport
 {
     public function __construct(public readonly array $current)
     {
