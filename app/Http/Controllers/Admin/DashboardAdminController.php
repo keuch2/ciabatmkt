@@ -120,8 +120,18 @@ class DashboardAdminController extends Controller
         if ($request->has('description')) {
             $fill['description'] = trim((string) $request->input('description')) ?: null;
         }
+        // Ícono del catálogo y ícono propio se excluyen: el que llega en el cuerpo manda.
+        if ($request->has('icon_data')) {
+            $fill['icon_data'] = $request->input('icon_data') ?: null;
+            if ($fill['icon_data'] !== null) {
+                $fill['icon'] = null;
+            }
+        }
         if ($request->has('icon')) {
             $fill['icon'] = $request->input('icon') ?: null;
+            if ($fill['icon'] !== null) {
+                $fill['icon_data'] = null;
+            }
         }
         if ($request->has('visible_to_all')) {
             $fill['visible_to_all'] = $request->boolean('visible_to_all');

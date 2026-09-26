@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\DashboardIconData;
 use App\Support\DashboardIcons;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ class StoreDashboardRequest extends FormRequest
             'is_published' => ['sometimes', 'boolean'],
             'description' => ['sometimes', 'nullable', 'string', 'max:500'],
             'icon' => ['sometimes', 'nullable', 'string', Rule::in(DashboardIcons::KEYS)],
+            'icon_data' => ['sometimes', 'nullable', 'string', 'max:100000', new DashboardIconData],
             'visible_to_all' => ['sometimes', 'boolean'],
             'division_ids' => ['sometimes', 'array'],
             'division_ids.*' => ['uuid', 'exists:divisions,id'],
@@ -36,6 +38,7 @@ class StoreDashboardRequest extends FormRequest
             'is_published.boolean' => 'El campo is_published debe ser verdadero o falso.',
             'description.max' => 'La descripción no puede superar 500 caracteres.',
             'icon.in' => 'El ícono elegido no está en el catálogo.',
+            'icon_data.max' => 'El ícono no puede superar 64 KB.',
             'visible_to_all.boolean' => 'El campo visible_to_all debe ser verdadero o falso.',
             'division_ids.*.exists' => 'Una de las divisiones elegidas no existe.',
             'group_ids.*.exists' => 'Uno de los grupos elegidos no existe.',

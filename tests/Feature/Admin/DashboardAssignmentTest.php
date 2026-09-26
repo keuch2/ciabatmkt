@@ -89,6 +89,34 @@ class DashboardAssignmentTest extends TestCase
         $this->actingAs($user)->getJson("/api/dashboards/{$dashboard->id}")->assertJsonPath('data.description', 'Visible');
     }
 
+    public function test_admin_can_upload_a_custom_icon_and_it_replaces_the_catalog_one(): void
+    {
+        $dashboard = Dashboard::factory()->create(['icon' => 'truck']);
+        $png = 'data:image/png;base64,'.base64_encode("\x89PNG\r\n\x1a\n".str_repeat('x', 100));
+        $svg = 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>');
+
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon_data' => $png])
+            ->assertOk()->assertJsonPath('data.icon_data', $png)->assertJsonPath('data.icon', null);
+        $this->actingAs(User::factory()->create())->getJson('/api/menu')->assertJsonPath('data.company.0.icon_data', $png);
+
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon_data' => $svg])->assertOk()->assertJsonPath('data.icon_data', $svg);
+
+        // Elegir uno del catálogo quita el propio, y viceversa.
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon' => 'cart'])
+            ->assertOk()->assertJsonPath('data.icon', 'cart')->assertJsonPath('data.icon_data', null);
+
+        $bad = [
+            'data:image/gif;base64,'.base64_encode('GIF89a') => 'El ícono debe ser un archivo PNG o SVG.',
+            'data:image/png;base64,'.base64_encode('no es png') => 'El archivo no es un PNG válido.',
+            'data:image/png;base64,'.base64_encode("\x89PNG\r\n\x1a\n".str_repeat('x', 70000)) => 'El ícono no puede superar 64 KB. Usá una imagen más chica (alcanza con 64×64 px).',
+            'data:image/svg+xml;base64,'.base64_encode('<svg onload="alert(1)"></svg>') => 'El SVG contiene scripts, eventos o referencias externas; exportalo como imagen simple.',
+        ];
+        foreach ($bad as $value => $message) {
+            $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon_data' => $value])
+                ->assertUnprocessable()->assertJsonPath('errors.icon_data.0', $message);
+        }
+    }
+
     public function test_admin_index_includes_assignment(): void
     {
         $dashboard = Dashboard::factory()->restricted()->create();

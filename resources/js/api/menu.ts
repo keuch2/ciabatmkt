@@ -7,6 +7,7 @@ export interface MenuDashboard {
     title: string;
     description: string | null;
     icon: string | null;
+    icon_data: string | null;
     is_published: boolean;
 }
 

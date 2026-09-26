@@ -25,6 +25,7 @@ class Dashboard extends Model
         'manifest',
         'is_published',
         'icon',
+        'icon_data',
         'visible_to_all',
         'created_by',
     ];

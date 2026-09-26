@@ -18,6 +18,7 @@ class DashboardSummaryResource extends JsonResource
             'version' => $this->version,
             'is_published' => $this->is_published,
             'icon' => $this->icon,
+            'icon_data' => $this->icon_data,
             'visible_to_all' => (bool) $this->visible_to_all,
             'divisions' => $this->whenLoaded('divisions', fn () => $this->divisions->map(fn ($d) => ['id' => $d->id, 'name' => $d->name])->values()),
             'groups' => $this->whenLoaded('groups', fn () => $this->groups->map(fn ($g) => [

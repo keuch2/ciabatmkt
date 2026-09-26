@@ -122,7 +122,7 @@ export function AdminDashboardsPage() {
                                     </td>
                                     <td className="px-3 py-2 text-xs">
                                         <Link to={`/admin/dashboards/${d.id}/edit`} className="flex items-center gap-2 rounded px-1 py-0.5 hover:bg-slate-100" title="Editar: ícono, quién lo ve y publicación">
-                                            <DashboardIcon icon={d.icon} title={d.title} className="h-6 w-6" />
+                                            <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className="h-6 w-6" />
                                             <span>
                                                 {d.visible_to_all && <span className="block text-slate-700">Toda la empresa</span>}
                                                 {(d.divisions ?? []).length > 0 && <span className="block text-slate-700">{(d.divisions ?? []).map((x) => x.name).join(', ')}</span>}

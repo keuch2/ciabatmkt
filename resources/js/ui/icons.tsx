@@ -82,7 +82,14 @@ export function initials(title: string): string {
 }
 
 /** Ícono de un dashboard: el elegido por el admin o un cuadro con las iniciales del título. */
-export function DashboardIcon({ icon, title, className = 'h-6 w-6' }: { icon: string | null | undefined; title: string; className?: string }) {
+export function DashboardIcon({ icon, iconData, title, className = 'h-6 w-6' }: { icon: string | null | undefined; iconData?: string | null; title: string; className?: string }) {
+    if (iconData) {
+        return (
+            <span className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded bg-slate-200/70 ${className}`}>
+                <img src={iconData} alt="" className="h-[80%] w-[80%] object-contain" />
+            </span>
+        );
+    }
     if (isIconKey(icon)) {
         return (
             <span className={`inline-flex shrink-0 items-center justify-center rounded bg-slate-200/70 text-slate-700 ${className}`}>

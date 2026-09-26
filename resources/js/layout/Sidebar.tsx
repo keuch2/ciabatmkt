@@ -75,7 +75,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const dashboardLink = (d: MenuDashboard, context: string) => (
         <RailTooltip key={d.id} label={`${d.title} · ${context}`} enabled={collapsed}>
             <NavLink to={`/dashboards/${d.id}`} className={linkClass}>
-                <DashboardIcon icon={d.icon} title={d.title} className="h-6 w-6" />
+                <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className="h-6 w-6" />
                 {!collapsed && (
                     <span className="min-w-0 flex-1 truncate">
                         {d.title}

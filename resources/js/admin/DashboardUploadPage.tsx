@@ -6,7 +6,7 @@ import { listDivisions } from '@/api/divisions';
 import { useRequest } from '@/app/useRequest';
 import { useMenu } from '@/menu/MenuProvider';
 import { Checkbox } from '@/ui/Checkbox';
-import { IconPicker } from '@/ui/IconPicker';
+import { IconChooser } from '@/ui/IconChooser';
 import type { IconKey } from '@/ui/icons';
 import { AssignmentFields } from './AssignmentFields';
 import { Alert } from '@/ui/Alert';
@@ -28,6 +28,7 @@ export function DashboardUploadPage() {
     const [preview, setPreview] = useState<PreviewResult | null>(null);
     const [publish, setPublish] = useState(true);
     const [icon, setIcon] = useState<IconKey | null>(null);
+    const [iconData, setIconData] = useState<string | null>(null);
     const [visibleToAll, setVisibleToAll] = useState(false);
     const [divisionIds, setDivisionIds] = useState<string[]>([]);
     const [groupIds, setGroupIds] = useState<string[]>([]);
@@ -80,7 +81,7 @@ export function DashboardUploadPage() {
                 void reloadMenu();
                 navigate('/admin/dashboards', { state: { notice: `«${result.data.title}» actualizado a la versión ${result.data.version}.` } });
             } else {
-                const created = await createDashboard(html, { is_published: publish, icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds });
+                const created = await createDashboard(html, { is_published: publish, icon, icon_data: iconData, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds });
                 void reloadMenu();
                 navigate('/admin/dashboards', { state: { notice: `«${created.title}» ${publish ? 'publicado' : 'guardado como borrador'}.` } });
             }
@@ -218,7 +219,13 @@ export function DashboardUploadPage() {
                             <div className="space-y-4 border-t border-slate-200 pt-4">
                                 <div>
                                     <p className="mb-2 text-sm font-medium text-slate-900">Ícono en el menú</p>
-                                    <IconPicker value={icon} onChange={setIcon} />
+                                    <IconChooser
+                                        value={{ icon, iconData }}
+                                        onChange={(next) => {
+                                            setIcon(next.icon);
+                                            setIconData(next.iconData);
+                                        }}
+                                    />
                                 </div>
                                 <div>
                                     <p className="mb-2 text-sm font-medium text-slate-900">Quién lo ve</p>

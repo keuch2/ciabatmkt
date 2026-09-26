@@ -12,7 +12,7 @@ import { Button } from '@/ui/Button';
 import { Checkbox } from '@/ui/Checkbox';
 import { Field } from '@/ui/Field';
 import { Input } from '@/ui/Input';
-import { IconPicker } from '@/ui/IconPicker';
+import { IconChooser } from '@/ui/IconChooser';
 import { isIconKey, type IconKey } from '@/ui/icons';
 import { PageHeader } from '@/ui/PageHeader';
 import { Spinner } from '@/ui/Spinner';
@@ -30,6 +30,7 @@ export function DashboardEditPage() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [icon, setIcon] = useState<IconKey | null>(null);
+    const [iconData, setIconData] = useState<string | null>(null);
     const [visibleToAll, setVisibleToAll] = useState(false);
     const [published, setPublished] = useState(true);
     const [divisionIds, setDivisionIds] = useState<string[]>([]);
@@ -43,6 +44,7 @@ export function DashboardEditPage() {
         setTitle(dashboard.title);
         setDescription(dashboard.description ?? '');
         setIcon(isIconKey(dashboard.icon) ? dashboard.icon : null);
+        setIconData(dashboard.icon_data ?? null);
         setVisibleToAll(dashboard.visible_to_all);
         setPublished(dashboard.is_published);
         setDivisionIds((dashboard.divisions ?? []).map((d) => d.id));
@@ -54,7 +56,7 @@ export function DashboardEditPage() {
         setErrors({});
         setMessage(null);
         try {
-            const result = await updateDashboard(id, { title: title.trim(), description: description.trim() || null, icon, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds, is_published: published });
+            const result = await updateDashboard(id, { title: title.trim(), description: description.trim() || null, icon, icon_data: iconData, visible_to_all: visibleToAll, division_ids: divisionIds, group_ids: groupIds, is_published: published });
             void reloadMenu();
             navigate('/admin/dashboards', { state: { notice: `«${result.data.title}» guardado.` } });
         } catch (e) {
@@ -108,8 +110,14 @@ export function DashboardEditPage() {
 
                 <section>
                     <p className="mb-2 text-sm font-medium text-slate-900">Ícono en el menú</p>
-                    <IconPicker value={icon} onChange={setIcon} />
-                    {errors.icon && <p className="mt-1 text-xs text-red-700">{errors.icon}</p>}
+                    <IconChooser
+                        value={{ icon, iconData }}
+                        onChange={(next) => {
+                            setIcon(next.icon);
+                            setIconData(next.iconData);
+                        }}
+                        error={errors.icon ?? errors.icon_data}
+                    />
                 </section>
 
                 <section>

@@ -143,8 +143,9 @@ elige:
 - **Sin nada marcado**: sólo los super administradores. Un dashboard nuevo arranca así: hay que
   asignarlo para que alguien lo vea.
 
-Ahí mismo se elige el **ícono** con el que aparece en el menú; sin ícono se muestran las
-iniciales del título.
+Ahí mismo se elige el **ícono** con el que aparece en el menú: uno del catálogo o uno propio
+subido como PNG o SVG (hasta 64 KB; ideal cuadrado y con fondo transparente). Sin ícono se
+muestran las iniciales del título.
 
 **El menú del usuario** muestra sus dashboards agrupados por división y grupo, más la sección
 "Toda la empresa". Con el botón «‹» del pie se contrae a una columna de íconos para dar espacio
