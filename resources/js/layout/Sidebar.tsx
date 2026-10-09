@@ -52,8 +52,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         return collapsed ? (
             <RailTooltip label={open ? name : `${name} (${count} ocultos)`}>
                 <button type="button" onClick={() => toggleDivision(id)} aria-expanded={open} aria-label={label} className="mt-3 mb-1 flex w-full justify-center">
-                    <span className={`flex h-6 w-6 items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
-                        <Icon name="layers" className="h-3.5 w-3.5" />
+                    <span className={`flex h-[1.725rem] w-[1.725rem] items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
+                        <Icon name="layers" className="h-[1.006rem] w-[1.006rem]" />
                     </span>
                 </button>
             </RailTooltip>
@@ -75,7 +75,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const dashboardLink = (d: MenuDashboard, context: string) => (
         <RailTooltip key={d.id} label={`${d.title} · ${context}`} enabled={collapsed}>
             <NavLink to={`/dashboards/${d.id}`} className={linkClass}>
-                <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className="h-6 w-6" />
+                <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className={box} />
                 {!collapsed && (
                     <span className="min-w-0 flex-1 truncate">
                         {d.title}
@@ -85,6 +85,10 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             </NavLink>
         </RailTooltip>
     );
+
+    // Contraído, los íconos se ven un 15% más grandes.
+    const box = collapsed ? 'h-[1.725rem] w-[1.725rem]' : 'h-6 w-6';
+    const glyph = collapsed ? 'h-[1.15rem] w-[1.15rem]' : 'h-4 w-4';
 
     const hasAny = !!menu && (menu.divisions.length > 0 || menu.company.length > 0 || menu.unassigned.length > 0);
 
@@ -103,8 +107,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
             <nav className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-1.5 py-2' : 'px-2 py-2'}`} aria-label="Menú principal">
                 <RailTooltip label="Inicio" enabled={collapsed}>
                     <NavLink to="/" end className={linkClass}>
-                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
-                            <Icon name="home" className="h-4 w-4" />
+                        <span className={`inline-flex shrink-0 items-center justify-center ${box}`}>
+                            <Icon name="home" className={glyph} />
                         </span>
                         {!collapsed && <span>Inicio</span>}
                     </NavLink>
@@ -166,8 +170,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                         {ADMIN_LINKS.map((l) => (
                             <RailTooltip key={l.to} label={l.label} enabled={collapsed}>
                                 <NavLink to={l.to} className={linkClass}>
-                                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center">
-                                        <Icon name={l.icon} className="h-4 w-4" />
+                                    <span className={`inline-flex shrink-0 items-center justify-center ${box}`}>
+                                        <Icon name={l.icon} className={glyph} />
                                     </span>
                                     {!collapsed && <span>{l.label}</span>}
                                 </NavLink>
@@ -186,7 +190,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                     title={collapsed ? 'Expandir menú' : 'Contraer menú'}
                     className="flex h-8 w-8 items-center justify-center rounded text-slate-600 hover:bg-slate-200"
                 >
-                    <Icon name={collapsed ? 'chevron-right' : 'chevron-left'} className="h-4 w-4" />
+                    <Icon name={collapsed ? 'chevron-right' : 'chevron-left'} className={glyph} />
                 </button>
                 <button
                     type="button"
@@ -195,7 +199,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                     aria-label="Cerrar sesión"
                     className={`flex h-8 items-center justify-center gap-2 rounded text-sm text-slate-600 hover:bg-slate-200 ${collapsed ? 'w-8' : 'px-2'}`}
                 >
-                    <Icon name="logout" className="h-4 w-4" />
+                    <Icon name="logout" className={glyph} />
                     {!collapsed && <span>Cerrar sesión</span>}
                 </button>
             </div>
