@@ -38,7 +38,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     }
 
     const linkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-2.5 rounded px-2 py-1.5 text-sm ${collapsed ? 'justify-center' : ''} ${
+        `flex items-center gap-2.5 rounded py-1.5 text-sm ${collapsed ? 'justify-center px-1' : 'px-2'} ${
             isActive ? 'bg-slate-800 text-white' : 'text-slate-700 hover:bg-slate-200'
         }`;
 
@@ -52,8 +52,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         return collapsed ? (
             <RailTooltip label={open ? name : `${name} (${count} ocultos)`}>
                 <button type="button" onClick={() => toggleDivision(id)} aria-expanded={open} aria-label={label} className="mt-3 mb-1 flex w-full justify-center">
-                    <span className={`flex h-[1.725rem] w-[1.725rem] items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
-                        <Icon name="layers" className="h-[1.006rem] w-[1.006rem]" />
+                    <span className={`flex h-[1.9rem] w-[1.9rem] items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
+                        <Icon name="layers" className="h-[1.1rem] w-[1.1rem]" />
                     </span>
                 </button>
             </RailTooltip>
@@ -86,9 +86,9 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         </RailTooltip>
     );
 
-    // Contraído, los íconos se ven un 15% más grandes.
-    const box = collapsed ? 'h-[1.725rem] w-[1.725rem]' : 'h-6 w-6';
-    const glyph = collapsed ? 'h-[1.15rem] w-[1.15rem]' : 'h-4 w-4';
+    // Contraído, los íconos se ven un 26% más grandes que expandidos (pedido: +15% y luego +10%).
+    const box = collapsed ? 'h-[1.9rem] w-[1.9rem]' : 'h-6 w-6';
+    const glyph = collapsed ? 'h-[1.265rem] w-[1.265rem]' : 'h-4 w-4';
 
     const hasAny = !!menu && (menu.divisions.length > 0 || menu.company.length > 0 || menu.unassigned.length > 0);
 
@@ -104,7 +104,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
                 )}
             </div>
 
-            <nav className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-1.5 py-2' : 'px-2 py-2'}`} aria-label="Menú principal">
+            <nav className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-1 py-2' : 'px-2 py-2'}`} aria-label="Menú principal">
                 <RailTooltip label="Inicio" enabled={collapsed}>
                     <NavLink to="/" end className={linkClass}>
                         <span className={`inline-flex shrink-0 items-center justify-center ${box}`}>
