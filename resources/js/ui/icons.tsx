@@ -82,23 +82,24 @@ export function initials(title: string): string {
 }
 
 /** Ícono de un dashboard: el elegido por el admin o un cuadro con las iniciales del título. */
-export function DashboardIcon({ icon, iconData, title, className = 'h-6 w-6' }: { icon: string | null | undefined; iconData?: string | null; title: string; className?: string }) {
+/** `large`: el contenido ocupa más de la caja (dibujo e iniciales más grandes), para el menú contraído. */
+export function DashboardIcon({ icon, iconData, title, className = 'h-6 w-6', large = false }: { icon: string | null | undefined; iconData?: string | null; title: string; className?: string; large?: boolean }) {
     if (iconData) {
         return (
             <span className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded bg-slate-200/70 ${className}`}>
-                <img src={iconData} alt="" className="h-[80%] w-[80%] object-contain" />
+                <img src={iconData} alt="" className={`${large ? 'h-[92%] w-[92%]' : 'h-[80%] w-[80%]'} object-contain`} />
             </span>
         );
     }
     if (isIconKey(icon)) {
         return (
             <span className={`inline-flex shrink-0 items-center justify-center rounded bg-slate-200/70 text-slate-700 ${className}`}>
-                <Icon name={icon} className="h-[62%] w-[62%]" />
+                <Icon name={icon} className={large ? 'h-[78%] w-[78%]' : 'h-[62%] w-[62%]'} />
             </span>
         );
     }
     return (
-        <span className={`inline-flex shrink-0 items-center justify-center rounded bg-slate-200/70 text-[10px] font-semibold uppercase text-slate-700 ${className}`}>
+        <span className={`inline-flex shrink-0 items-center justify-center rounded bg-slate-200/70 font-semibold uppercase text-slate-700 ${large ? 'text-[13px]' : 'text-[10px]'} ${className}`}>
             {initials(title)}
         </span>
     );

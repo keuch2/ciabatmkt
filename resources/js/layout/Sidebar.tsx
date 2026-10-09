@@ -52,8 +52,8 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         return collapsed ? (
             <RailTooltip label={open ? name : `${name} (${count} ocultos)`}>
                 <button type="button" onClick={() => toggleDivision(id)} aria-expanded={open} aria-label={label} className="mt-3 mb-1 flex w-full justify-center">
-                    <span className={`flex h-[1.9rem] w-[1.9rem] items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
-                        <Icon name="layers" className="h-[1.1rem] w-[1.1rem]" />
+                    <span className={`flex h-[2.1rem] w-[2.1rem] items-center justify-center rounded-sm bg-[#1a9e3f] text-white ${open ? '' : 'opacity-60'}`}>
+                        <Icon name="layers" className="h-[1.45rem] w-[1.45rem]" />
                     </span>
                 </button>
             </RailTooltip>
@@ -75,7 +75,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const dashboardLink = (d: MenuDashboard, context: string) => (
         <RailTooltip key={d.id} label={`${d.title} · ${context}`} enabled={collapsed}>
             <NavLink to={`/dashboards/${d.id}`} className={linkClass}>
-                <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className={box} />
+                <DashboardIcon icon={d.icon} iconData={d.icon_data} title={d.title} className={box} large={collapsed} />
                 {!collapsed && (
                     <span className="min-w-0 flex-1 truncate">
                         {d.title}
@@ -86,9 +86,9 @@ export function Sidebar({ collapsed, onToggle }: Props) {
         </RailTooltip>
     );
 
-    // Contraído, los íconos se ven un 26% más grandes que expandidos (pedido: +15% y luego +10%).
-    const box = collapsed ? 'h-[1.9rem] w-[1.9rem]' : 'h-6 w-6';
-    const glyph = collapsed ? 'h-[1.265rem] w-[1.265rem]' : 'h-4 w-4';
+    // Contraído: caja un 40% más grande que expandido y el dibujo/iniciales ocupan más de la caja.
+    const box = collapsed ? 'h-[2.1rem] w-[2.1rem]' : 'h-6 w-6';
+    const glyph = collapsed ? 'h-[1.45rem] w-[1.45rem]' : 'h-4 w-4';
 
     const hasAny = !!menu && (menu.divisions.length > 0 || menu.company.length > 0 || menu.unassigned.length > 0);
 
