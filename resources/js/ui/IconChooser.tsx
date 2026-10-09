@@ -9,6 +9,26 @@ export interface IconChoice {
 
 const MAX_BYTES = 65536;
 
+function shrinkPng(dataUrl: string, max: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const k = Math.min(1, max / Math.max(img.width, img.height));
+            if (k === 1) return resolve(dataUrl);
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            const ctx = c.getContext('2d');
+            if (!ctx) return reject(new Error('canvas'));
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            resolve(c.toDataURL('image/png'));
+        };
+        img.onerror = () => reject(new Error('imagen'));
+        img.src = dataUrl;
+    });
+}
+
 /** Elegí un ícono del catálogo o subí uno propio (PNG o SVG, hasta 64 KB). */
 export function IconChooser({ value, onChange, error }: { value: IconChoice; onChange: (next: IconChoice) => void; error?: string }) {
     const fileRef = useRef<HTMLInputElement>(null);
@@ -23,13 +43,24 @@ export function IconChooser({ value, onChange, error }: { value: IconChoice; onC
             setLocalError('El ícono debe ser un archivo PNG o SVG.');
             return;
         }
-        if (file.size > MAX_BYTES) {
-            setLocalError('El ícono no puede superar 64 KB. Alcanza con 64×64 px.');
-            return;
-        }
         const reader = new FileReader();
-        reader.onload = () => onChange({ icon: null, iconData: String(reader.result) });
         reader.onerror = () => setLocalError('No se pudo leer el archivo.');
+        reader.onload = async () => {
+            let data = String(reader.result);
+            // Los PNG grandes se achican a 128 px: en el menú se ven a menos de 40 px.
+            if (file.type === 'image/png') {
+                try {
+                    data = await shrinkPng(data, 128);
+                } catch {
+                    /* se usa el original */
+                }
+            }
+            if (Math.ceil(((data.length - data.indexOf(',') - 1) * 3) / 4) > MAX_BYTES) {
+                setLocalError('El ícono no puede superar 64 KB. Usá una imagen más simple o más chica.');
+                return;
+            }
+            onChange({ icon: null, iconData: data });
+        };
         reader.readAsDataURL(file);
     }
 
@@ -56,7 +87,7 @@ export function IconChooser({ value, onChange, error }: { value: IconChoice; onC
                     </button>
                 )}
                 <input ref={fileRef} type="file" accept="image/png,image/svg+xml,.png,.svg" onChange={handleFile} className="hidden" />
-                <span className="text-xs text-slate-500">PNG o SVG, hasta 64 KB. Se ve mejor cuadrado y con fondo transparente.</span>
+                <span className="text-xs text-slate-500">PNG o SVG. Los PNG grandes se achican solos. Se ve mejor cuadrado y con fondo transparente.</span>
             </div>
             <p className="text-xs text-slate-500">O elegí uno del catálogo:</p>
             <IconPicker value={value.iconData ? null : value.icon} onChange={(icon) => onChange({ icon, iconData: null })} />

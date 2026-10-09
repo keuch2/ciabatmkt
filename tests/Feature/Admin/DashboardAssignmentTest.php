@@ -101,6 +101,11 @@ class DashboardAssignmentTest extends TestCase
 
         $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon_data' => $svg])->assertOk()->assertJsonPath('data.icon_data', $svg);
 
+        // Un ícono cerca del tope (64 KB) entra en la base: en base64 ocupa unos 87 KB.
+        $big = 'data:image/png;base64,'.base64_encode("\x89PNG\r\n\x1a\n".random_bytes(65000));
+        $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon_data' => $big])->assertOk();
+        $this->assertSame($big, $dashboard->fresh()->icon_data);
+
         // Elegir uno del catálogo quita el propio, y viceversa.
         $this->actingAs($this->admin)->putJson("/api/admin/dashboards/{$dashboard->id}", ['icon' => 'cart'])
             ->assertOk()->assertJsonPath('data.icon', 'cart')->assertJsonPath('data.icon_data', null);
