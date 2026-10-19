@@ -201,7 +201,7 @@ export function DashboardFrame({ dashboardId, html, csp, viewer, params, onParam
     }, [params, status]);
 
     return (
-        <div className="relative w-full overflow-hidden rounded border border-slate-200 bg-white">
+        <div className="relative w-full overflow-hidden bg-white">
             {status === 'loading' && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
                     <Spinner className="h-5 w-5" />

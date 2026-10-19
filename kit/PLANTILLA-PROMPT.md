@@ -185,6 +185,11 @@ El archivo se rechaza al publicarlo si incumple alguno:
   `unpkg.com`, `fonts.googleapis.com` y `fonts.gstatic.com`, por `https`.
 - Prohibido `localStorage`, `sessionStorage`, `document.cookie`, `XMLHttpRequest`, `WebSocket`,
   `navigator.sendBeacon`. Prohibido `fetch()` salvo a una URL literal de los hosts de arriba.
+- El dashboard se muestra de borde a borde dentro de la plataforma, que no agrega márgenes. No
+  encierres el contenido en un contenedor centrado con `max-width` y `margin: 0 auto`: dejaría
+  franjas vacías a los lados en pantallas anchas. Usá todo el ancho disponible con un margen
+  interno chico (12 a 24 px). Si alguna sección necesita un ancho fijo, que tenga scroll horizontal
+  propio.
 - Sin `height: 100vh` ni `min-height: 100vh` en `html` o `body`: el alto lo fija la plataforma a
   partir de `Dashboard.setHeight()`. Los elementos `position: fixed` quedan fijos respecto del
   iframe, no de la ventana.

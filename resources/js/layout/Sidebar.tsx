@@ -93,7 +93,7 @@ export function Sidebar({ collapsed, onToggle }: Props) {
     const hasAny = !!menu && (menu.divisions.length > 0 || menu.company.length > 0 || menu.unassigned.length > 0);
 
     return (
-        <aside className={`sticky top-0 flex h-screen flex-col self-start border-r border-slate-200 bg-slate-50 ${collapsed ? 'w-14' : 'w-60'}`}>
+        <aside className="sticky top-0 flex h-screen w-full flex-col self-start border-r border-slate-200 bg-slate-50">
             <div className={`border-b border-slate-200 ${collapsed ? 'px-2 py-3' : 'px-4 py-3'}`}>
                 {collapsed ? (
                     <div className="flex h-8 items-center justify-center rounded bg-slate-800 text-xs font-bold text-white" title={`Ciabay · ${user?.name ?? ''}`}>

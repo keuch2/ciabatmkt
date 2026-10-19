@@ -7,7 +7,6 @@ import { useAuth } from '@/auth/AuthProvider';
 import { DashboardFrame } from '@/dashboard/DashboardFrame';
 import { useParamState } from '@/params/useParamState';
 import { Alert } from '@/ui/Alert';
-import { PageHeader } from '@/ui/PageHeader';
 import { Spinner } from '@/ui/Spinner';
 
 /**
@@ -19,10 +18,10 @@ export function DashboardPage({ scope = 'user' }: { scope?: ParamScope }) {
     const { user } = useAuth();
     const { data, error, status, loading } = useRequest(() => getDashboard(id), [id]);
 
-    if (loading) return <Spinner />;
+    if (loading) return <div className="p-6"><Spinner /></div>;
     if (error || !data) {
         return (
-            <div className="space-y-3">
+            <div className="space-y-3 p-6">
                 <Alert tone="error">{status === 404 ? 'Este dashboard no existe o no está publicado.' : (error ?? 'Error')}</Alert>
                 <Link to="/" className="text-sm text-slate-700 underline-offset-2 hover:underline">
                     Volver al listado
@@ -32,7 +31,7 @@ export function DashboardPage({ scope = 'user' }: { scope?: ParamScope }) {
     }
 
     if (scope === 'base' && user?.role !== 'super_admin') {
-        return <Alert tone="error">Sólo un super administrador puede editar valores base.</Alert>;
+        return <div className="p-6"><Alert tone="error">Sólo un super administrador puede editar valores base.</Alert></div>;
     }
 
     return <LoadedDashboard data={data} scope={scope} />;
@@ -55,20 +54,21 @@ function LoadedDashboard({ data, scope }: { data: Detail; scope: ParamScope }) {
 
     return (
         <div className="flex h-full flex-col">
-            <PageHeader
-                title={data.title}
-                description={`${data.description ? `${data.description} · ` : ''}Versión ${data.version}${scope === 'base' ? ' · edición de valores base' : ''}${!data.is_published ? ' · borrador' : ''}`}
-                actions={
-                    <>
-                        <Link to={scope === 'base' ? '/admin/dashboards' : '/'} className="text-sm text-slate-600 underline-offset-2 hover:underline">
-                            Volver
-                        </Link>
-                    </>
-                }
-            />
+            {/* Barra compacta: el dashboard ocupa todo el ancho y casi todo el alto. */}
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-1.5">
+                <p className="min-w-0 truncate text-sm">
+                    <span className="font-semibold text-slate-900">{data.title}</span>
+                    <span className="ml-2 text-xs text-slate-500">
+                        {`${data.description ? `${data.description} · ` : ''}Versión ${data.version}${scope === 'base' ? ' · edición de valores base' : ''}${!data.is_published ? ' · borrador' : ''}`}
+                    </span>
+                </p>
+                <Link to={scope === 'base' ? '/admin/dashboards' : '/'} className="shrink-0 text-xs text-slate-600 underline-offset-2 hover:underline">
+                    Volver
+                </Link>
+            </div>
 
             {stale.length > 0 && (
-                <div className="mb-3">
+                <div className="px-4 pt-3">
                     <Alert tone="info">
                         Algunos valores guardados ya no son válidos para esta versión ({stale.join(', ')}). Se muestra el siguiente nivel; al
                         guardar un valor nuevo se reemplazan.
@@ -76,7 +76,7 @@ function LoadedDashboard({ data, scope }: { data: Detail; scope: ParamScope }) {
                 </div>
             )}
             {frameErrors.length > 0 && (
-                <div className="mb-3">
+                <div className="px-4 pt-3">
                     <Alert tone="error">
                         <p className="font-medium">El dashboard reportó errores:</p>
                         <ul className="mt-1 list-disc pl-4 font-mono text-xs">
